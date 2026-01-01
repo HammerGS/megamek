@@ -66,6 +66,8 @@ import megamek.client.ui.util.UIUtil.TipLabel;
 import megamek.codeUtilities.MathUtility;
 import megamek.common.Configuration;
 import megamek.common.planetaryConditions.Atmosphere;
+import megamek.common.planetaryConditions.AtmosphereContamination;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
 import megamek.common.planetaryConditions.BlowingSand;
 import megamek.common.planetaryConditions.EMI;
 import megamek.common.planetaryConditions.Fog;
@@ -142,6 +144,12 @@ public class PlanetaryConditionsDialog extends ClientDialog {
     private final JComboBox<WindDirection> comWindDirection = new JComboBox<>();
     private final JLabel labAtmosphere = new TipLabel(Messages.getString(PCD + "labAtmosphere"), SwingConstants.RIGHT);
     private final JComboBox<Atmosphere> comAtmosphere = new JComboBox<>();
+    private final JLabel labAtmosphereToxicity = new TipLabel(Messages.getString(PCD + "labAtmosphereToxicity"),
+          SwingConstants.RIGHT);
+    private final JComboBox<AtmosphereToxicity> comAtmosphereToxicity = new JComboBox<>();
+    private final JLabel labAtmosphereContamination = new TipLabel(Messages.getString(PCD + "labAtmosphereContamination"),
+          SwingConstants.RIGHT);
+    private final JComboBox<AtmosphereContamination> comAtmosphereContamination = new JComboBox<>();
     private final JLabel labFog = new TipLabel(Messages.getString(PCD + "labFog"), SwingConstants.RIGHT);
     private final JComboBox<Fog> comFog = new JComboBox<>();
     private final JLabel labBlowingSands = new TipLabel(Messages.getString(PCD + "BlowingSands"), SwingConstants.RIGHT);
@@ -206,7 +214,7 @@ public class PlanetaryConditionsDialog extends ClientDialog {
 
     private JPanel generalSection() {
         JPanel result = new OptionPanel("PlanetaryConditionsDialog.header.general");
-        Content panContent = new Content(new GridLayout(6, 2, 10, 5));
+        Content panContent = new Content(new GridLayout(8, 2, 10, 5));
         result.add(panContent);
         panContent.add(labTemp);
         panContent.add(fldTemp);
@@ -216,6 +224,10 @@ public class PlanetaryConditionsDialog extends ClientDialog {
         panContent.add(comLight);
         panContent.add(labAtmosphere);
         panContent.add(comAtmosphere);
+        panContent.add(labAtmosphereToxicity);
+        panContent.add(comAtmosphereToxicity);
+        panContent.add(labAtmosphereContamination);
+        panContent.add(comAtmosphereContamination);
         panContent.add(labEMI);
         panContent.add(chkEMI);
         panContent.add(labTerrainAffected);
@@ -282,6 +294,12 @@ public class PlanetaryConditionsDialog extends ClientDialog {
         for (Atmosphere condition : Atmosphere.values()) {
             comAtmosphere.addItem(condition);
         }
+        for (AtmosphereToxicity condition : AtmosphereToxicity.values()) {
+            comAtmosphereToxicity.addItem(condition);
+        }
+        for (AtmosphereContamination condition : AtmosphereContamination.values()) {
+            comAtmosphereContamination.addItem(condition);
+        }
         for (Fog condition : Fog.values()) {
             comFog.addItem(condition);
         }
@@ -290,6 +308,8 @@ public class PlanetaryConditionsDialog extends ClientDialog {
     /** Adds all required listeners for the dialog fields. */
     private void addListeners() {
         comAtmosphere.addActionListener(listener);
+        comAtmosphereToxicity.addActionListener(listener);
+        comAtmosphereContamination.addActionListener(listener);
         fldTemp.addFocusListener(focusListener);
         comLight.addActionListener(listener);
         comAtmosphere.addActionListener(listener);
@@ -306,6 +326,8 @@ public class PlanetaryConditionsDialog extends ClientDialog {
     /** Removes all listeners from the dialog fields. */
     private void removeListeners() {
         comAtmosphere.removeActionListener(listener);
+        comAtmosphereToxicity.removeActionListener(listener);
+        comAtmosphereContamination.removeActionListener(listener);
         fldTemp.removeFocusListener(focusListener);
         comLight.removeActionListener(listener);
         comAtmosphere.removeActionListener(listener);
@@ -329,6 +351,8 @@ public class PlanetaryConditionsDialog extends ClientDialog {
         comWindTo.setSelectedItem(conditions.getWindMax());
         comWindDirection.setSelectedItem(conditions.getWindDirection());
         comAtmosphere.setSelectedItem(conditions.getAtmosphere());
+        comAtmosphereToxicity.setSelectedItem(conditions.getAtmosphereToxicity());
+        comAtmosphereContamination.setSelectedItem(conditions.getAtmosphereContamination());
         comFog.setSelectedItem(conditions.getFog());
         chkBlowingSands.setSelected(conditions.isBlowingSand());
         chkShiftWindDir.setSelected(conditions.shiftingWindDirection());
@@ -352,6 +376,9 @@ public class PlanetaryConditionsDialog extends ClientDialog {
         conditions.setWindDirection(comWindDirection.getItemAt(comWindDirection.getSelectedIndex()));
         refreshWindRange();
         conditions.setAtmosphere(comAtmosphere.getItemAt(comAtmosphere.getSelectedIndex()));
+        conditions.setAtmosphereToxicity(comAtmosphereToxicity.getItemAt(comAtmosphereToxicity.getSelectedIndex()));
+        conditions.setAtmosphereContamination(
+              comAtmosphereContamination.getItemAt(comAtmosphereContamination.getSelectedIndex()));
         conditions.setFog(comFog.getItemAt(comFog.getSelectedIndex()));
         BlowingSand blowingSand = chkBlowingSands.isSelected() ?
               BlowingSand.BLOWING_SAND :

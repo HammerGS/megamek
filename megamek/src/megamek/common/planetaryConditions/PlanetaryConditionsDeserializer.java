@@ -46,6 +46,8 @@ public class PlanetaryConditionsDeserializer extends StdDeserializer<PlanetaryCo
 
     static final String TEMPERATURE = "temperature";
     static final String PRESSURE = "pressure";
+    static final String TOXICITY = "toxicity";
+    static final String CONTAMINATION = "contamination";
     static final String GRAVITY = "gravity";
     static final String EMI_TEXT = "emi";
     static final String BLOWING_SAND = "blowingsand";
@@ -64,6 +66,17 @@ public class PlanetaryConditionsDeserializer extends StdDeserializer<PlanetaryCo
           "trace", Atmosphere.TRACE, "thin", Atmosphere.THIN,
           "standard", Atmosphere.STANDARD, "high", Atmosphere.HIGH,
           "very high", Atmosphere.VERY_HIGH);
+
+    static final Map<String, AtmosphereToxicity> TOXICITY_VALUES = Map.of(
+          "breathable", AtmosphereToxicity.BREATHABLE,
+          "tainted", AtmosphereToxicity.TAINTED,
+          "toxic", AtmosphereToxicity.TOXIC);
+
+    static final Map<String, AtmosphereContamination> CONTAMINATION_VALUES = Map.of(
+          "none", AtmosphereContamination.NONE,
+          "caustic", AtmosphereContamination.CAUSTIC,
+          "radiological", AtmosphereContamination.RADIOLOGICAL,
+          "flammable", AtmosphereContamination.FLAMMABLE);
 
     static final Map<String, Fog> FOG_VALUES = Map.of("none", Fog.FOG_NONE,
           "light", Fog.FOG_LIGHT, "heavy", Fog.FOG_HEAVY);
@@ -131,6 +144,12 @@ public class PlanetaryConditionsDeserializer extends StdDeserializer<PlanetaryCo
         }
         if (node.has(PRESSURE)) {
             result.setAtmosphere(PRESSURE_VALUES.get(node.get(PRESSURE).textValue()));
+        }
+        if (node.has(TOXICITY)) {
+            result.setAtmosphereToxicity(TOXICITY_VALUES.get(node.get(TOXICITY).textValue()));
+        }
+        if (node.has(CONTAMINATION)) {
+            result.setAtmosphereContamination(CONTAMINATION_VALUES.get(node.get(CONTAMINATION).textValue()));
         }
         if (node.has(FOG)) {
             result.setFog(FOG_VALUES.get(node.get(FOG).textValue()));

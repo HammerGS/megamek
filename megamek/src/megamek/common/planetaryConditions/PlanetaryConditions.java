@@ -78,6 +78,8 @@ public class PlanetaryConditions implements Serializable {
     private boolean shiftWindStrength = false;
     private boolean isSleeting = false;
     private Atmosphere atmosphere = Atmosphere.STANDARD;
+    private AtmosphereToxicity atmosphereToxicity = AtmosphereToxicity.BREATHABLE;
+    private AtmosphereContamination atmosphereContamination = AtmosphereContamination.NONE;
     private Fog fog = Fog.FOG_NONE;
     private int temperature = 25;
     private int oldTemperature = 25;
@@ -114,6 +116,8 @@ public class PlanetaryConditions implements Serializable {
         shiftWindDirection = other.shiftWindDirection;
         shiftWindStrength = other.shiftWindStrength;
         atmosphere = other.atmosphere;
+        atmosphereToxicity = other.atmosphereToxicity;
+        atmosphereContamination = other.atmosphereContamination;
         temperature = other.temperature;
         gravity = other.gravity;
         emi = other.emi;
@@ -139,6 +143,8 @@ public class PlanetaryConditions implements Serializable {
         shiftWindDirection = conditions.shiftWindDirection;
         shiftWindStrength = conditions.shiftWindStrength;
         atmosphere = conditions.atmosphere;
+        atmosphereToxicity = conditions.atmosphereToxicity;
+        atmosphereContamination = conditions.atmosphereContamination;
         temperature = conditions.temperature;
         gravity = conditions.gravity;
         emi = conditions.emi;
@@ -210,6 +216,32 @@ public class PlanetaryConditions implements Serializable {
 
     public Atmosphere getAtmosphere() {
         return atmosphere;
+    }
+
+    public void setAtmosphereToxicity(AtmosphereToxicity atmosphereToxicity) {
+        this.atmosphereToxicity = atmosphereToxicity;
+    }
+
+    public AtmosphereToxicity getAtmosphereToxicity() {
+        return atmosphereToxicity;
+    }
+
+    public void setAtmosphereContamination(AtmosphereContamination atmosphereContamination) {
+        this.atmosphereContamination = atmosphereContamination;
+    }
+
+    public AtmosphereContamination getAtmosphereContamination() {
+        return atmosphereContamination;
+    }
+
+    /**
+     * Returns true if the atmosphere has hazardous conditions (tainted/toxic with contamination).
+     * Based on Tactical Operations: Advanced Rules (TO:AR) p.56.
+     *
+     * @return true if atmosphere toxicity is not breathable or contamination is not none
+     */
+    public boolean isAtmosphereHazardous() {
+        return atmosphereToxicity.isHazardous() || atmosphereContamination.isContaminated();
     }
 
     public Fog getFog() {
@@ -423,6 +455,7 @@ public class PlanetaryConditions implements Serializable {
 
     /**
      * modifiers for fire ignition
+     * TO:AR p.56 - Flammable atmospheres make fires easier to start
      */
     public int getIgniteModifiers() {
         int mod = 0;
@@ -451,6 +484,15 @@ public class PlanetaryConditions implements Serializable {
             mod -= getTemperatureDifference(30, -30);
         } else if (getTemperature() < 30) {
             mod += getTemperatureDifference(30, -30);
+        }
+
+        // Flammable atmosphere makes fires easier to start (TO:AR p.56)
+        if (getAtmosphereContamination().isFlammable()) {
+            if (getAtmosphereToxicity().isTainted()) {
+                mod -= 2;
+            } else if (getAtmosphereToxicity().isToxic()) {
+                mod -= 4;
+            }
         }
 
         return mod;
@@ -602,6 +644,60 @@ public class PlanetaryConditions implements Serializable {
         if (isExtremeTemperature() && en.doomedInExtremeTemp() && !Compute.isInBuilding(game, en)) {
             return "extreme temperature";
         }
+
+        // Tainted/Toxic atmosphere deployment restrictions (TO:AR p.56)
+        String atmosphereRestriction = whyDoomedFromAtmosphere(en, game);
+        if (atmosphereRestriction != null) {
+            return atmosphereRestriction;
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if the entity is doomed due to tainted/toxic atmosphere conditions.
+     * Based on Tactical Operations: Advanced Rules (TO:AR) p.56.
+     *
+     * <p>Restrictions:</p>
+     * <ul>
+     *   <li>Conventional infantry without appropriate protection cannot deploy</li>
+     *   <li>Vehicles without environmental sealing cannot deploy in toxic caustic/radiological</li>
+     * </ul>
+     *
+     * @param entity the entity to check
+     * @param game the current game
+     * @return a string describing why the entity is doomed, or null if not doomed
+     */
+    private String whyDoomedFromAtmosphere(Entity entity, Game game) {
+        // Skip if atmosphere is breathable with no contamination
+        if (atmosphereToxicity.isBreathable() && atmosphereContamination.isNone()) {
+            return null;
+        }
+
+        // Skip entities in buildings (protected)
+        if (Compute.isInBuilding(game, entity)) {
+            return null;
+        }
+
+        // Check conventional infantry
+        if (entity.isConventionalInfantry() && (entity instanceof Infantry infantry)) {
+            if (!infantry.isProtectedFromAtmosphereToxicity(atmosphereToxicity)) {
+                if (atmosphereToxicity.isTainted()) {
+                    return "tainted atmosphere";
+                } else if (atmosphereToxicity.isToxic()) {
+                    return "toxic atmosphere";
+                }
+            }
+        }
+
+        // Check vehicles without environmental sealing in toxic caustic/radiological
+        if ((entity instanceof Tank) && atmosphereToxicity.isToxic()
+              && (atmosphereContamination.isCaustic() || atmosphereContamination.isRadiological())) {
+            if (!entity.hasEnvironmentalSealing()) {
+                return "toxic " + (atmosphereContamination.isCaustic() ? "caustic" : "radiological") + " atmosphere";
+            }
+        }
+
         return null;
     }
 
@@ -942,6 +1038,8 @@ public class PlanetaryConditions implements Serializable {
               ((temperature != 25) ? "; Temperature: " + temperature : "") +
               ((gravity != 1) ? "; Gravity: " + gravity : "") +
               (!atmosphere.isStandard() ? "; Pressure:" + atmosphere : "") +
+              (!atmosphereToxicity.isBreathable() ? "; Toxicity:" + atmosphereToxicity : "") +
+              (!atmosphereContamination.isNone() ? "; Contamination:" + atmosphereContamination : "") +
               (!fog.isFogNone() ? "; Fog:" + fog : "") +
               (isBlowingSand() ? "; Blowing Sand" : "") +
               (isEMI() ? "; EMI" : "") +

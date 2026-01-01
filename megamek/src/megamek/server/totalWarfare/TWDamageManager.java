@@ -59,6 +59,8 @@ import megamek.common.equipment.enums.BombType;
 import megamek.common.game.Game;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryConditions.Atmosphere;
+import megamek.common.planetaryConditions.AtmosphereContamination;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
 import megamek.common.rolls.PilotingRollData;
 import megamek.common.rolls.Roll;
 import megamek.common.rolls.TargetRoll;
@@ -541,6 +543,37 @@ public class TWDamageManager implements IDamageManager {
             report.subject = entityId;
             report.indent(2);
             reportVec.addElement(report);
+        }
+
+        // Is the infantry in a tainted/toxic atmosphere? (TO:AR p.56)
+        AtmosphereToxicity toxicity = game.getPlanetaryConditions().getAtmosphereToxicity();
+        AtmosphereContamination contamination = game.getPlanetaryConditions().getAtmosphereContamination();
+        if (isPlatoon &&
+              !entity.isDestroyed() &&
+              !entity.isDoomed() &&
+              toxicity.isHazardous() &&
+              contamination.isContaminated()) {
+            Infantry infantry = (Infantry) entity;
+            if (!infantry.isProtectedFromAtmosphereToxicity(toxicity)) {
+                // Caustic Tainted: +1D6 damage (TO:AR p.56)
+                if (contamination.isCaustic() && toxicity.isTainted()) {
+                    int causticDamage = Compute.d6();
+                    damage += causticDamage;
+                    report = new Report(6046);
+                    report.subject = entityId;
+                    report.indent(2);
+                    report.add(causticDamage);
+                    reportVec.addElement(report);
+                }
+                // Radiological Tainted: Double damage (TO:AR p.56)
+                if (contamination.isRadiological() && toxicity.isTainted()) {
+                    damage *= 2;
+                    report = new Report(6047);
+                    report.subject = entityId;
+                    report.indent(2);
+                    reportVec.addElement(report);
+                }
+            }
         }
 
         // adjust VTOL rotor damage
@@ -1446,6 +1479,27 @@ public class TWDamageManager implements IDamageManager {
                         }
                         report.add(entity.getInternal(hit));
                         reportVec.addElement(report);
+
+                        // Battle Armor suit breach check in toxic atmosphere (TO:AR p.56)
+                        if (isBattleArmor && toxicity.isToxic()) {
+                            Roll breachRoll = Compute.rollD6(2);
+                            // HarJel provides +1 to the roll threshold (10+ instead of 9+)
+                            int breachThreshold = entity.hasWorkingMisc(MiscType.F_HARJEL) ? 10 : 9;
+                            if (breachRoll.getIntValue() >= breachThreshold) {
+                                // Trooper killed by suit breach
+                                entity.setInternal(0, hit);
+                                report = new Report(6048);
+                                report.subject = entityId;
+                                report.indent(3);
+                                reportVec.addElement(report);
+                            } else {
+                                // Trooper survives
+                                report = new Report(6049);
+                                report.subject = entityId;
+                                report.indent(3);
+                                reportVec.addElement(report);
+                            }
+                        }
                     } else if (damage > 0) {
                         // Triggers a critical hit on Vehicles and Meks.
                         if (!isPlatoon && !isBattleArmor) {
@@ -1823,7 +1877,23 @@ public class TWDamageManager implements IDamageManager {
                     reportVec.add(r);
                 } else {
                     Report.addNewline(reportVec);
-                    reportVec.addAll(manager.damageCrew(entity, 1));
+                    // Toxic atmosphere crew effects (TO:AR p.56)
+                    if (toxicity.isToxic() && !entity.hasEnvironmentalSealing()) {
+                        // Toxic atmosphere: Instant crew kill on cockpit breach
+                        report = new Report(6052);
+                        report.subject = entityId;
+                        reportVec.addElement(report);
+                        entity.getCrew().setDoomed(true);
+                    } else if (toxicity.isTainted() && contamination.isCaustic()
+                          && !entity.hasEnvironmentalSealing()) {
+                        // Caustic Tainted: +1 extra crew hit
+                        report = new Report(6053);
+                        report.subject = entityId;
+                        reportVec.addElement(report);
+                        reportVec.addAll(manager.damageCrew(entity, 2));
+                    } else {
+                        reportVec.addAll(manager.damageCrew(entity, 1));
+                    }
                 }
             }
 

@@ -284,6 +284,9 @@ record TWPhaseEndManager(TWGameManager gameManager) {
                 // Decrement the ASEWAffected counter
                 gameManager.decrementASEWTurns();
 
+                // Process radiological atmosphere exposure (TO:AR p.56)
+                gameManager.processRadiologicalExposure();
+
                 break;
             case END_REPORT:
                 gameManager.processTeamChangeRequest();

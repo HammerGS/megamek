@@ -547,6 +547,13 @@ public abstract class Entity extends TurnOrdered
     protected int asewAffectedTurns = 0;
 
     /**
+     * Tracks exposure to radiological atmosphere (TO:AR p.56).
+     * Infantry: After 30 turns, take 1D6 damage per turn.
+     * Vehicles (unsealed): After 90 turns, crew killed.
+     */
+    protected int radiologicalExposureTurns = 0;
+
+    /**
      * Keeps track of whether this Entity fired a TSEMP this turn
      */
     private boolean firedTsempThisTurn = false;
@@ -15267,6 +15274,37 @@ public abstract class Entity extends TurnOrdered
      */
     public int getASEWAffected() {
         return asewAffectedTurns;
+    }
+
+    /**
+     * Sets the number of turns this entity has been exposed to radiological atmosphere.
+     * Used for TO:AR p.56 radiological exposure tracking.
+     *
+     * @param turns the number of turns of exposure
+     */
+    public void setRadiologicalExposureTurns(int turns) {
+        radiologicalExposureTurns = turns;
+    }
+
+    /**
+     * @return the number of turns this entity has been exposed to radiological atmosphere
+     */
+    public int getRadiologicalExposureTurns() {
+        return radiologicalExposureTurns;
+    }
+
+    /**
+     * Increments the radiological exposure turn counter by 1.
+     */
+    public void incrementRadiologicalExposure() {
+        radiologicalExposureTurns++;
+    }
+
+    /**
+     * Resets the radiological exposure turn counter to 0.
+     */
+    public void resetRadiologicalExposure() {
+        radiologicalExposureTurns = 0;
     }
 
     public boolean hasActivatedRadicalHS() {

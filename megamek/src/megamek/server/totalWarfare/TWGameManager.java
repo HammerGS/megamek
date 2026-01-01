@@ -98,6 +98,8 @@ import megamek.common.options.IBasicOption;
 import megamek.common.options.IOption;
 import megamek.common.options.OptionsConstants;
 import megamek.common.planetaryConditions.Atmosphere;
+import megamek.common.planetaryConditions.AtmosphereContamination;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
 import megamek.common.planetaryConditions.PlanetaryConditions;
 import megamek.common.planetaryConditions.Wind;
 import megamek.common.preference.PreferenceManager;
@@ -1172,6 +1174,95 @@ public class TWGameManager extends AbstractGameManager {
             } else {
                 if (entity.getASEWAffected() > 0) {
                     entity.setASEWAffected(entity.getASEWAffected() - 1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Called during the end phase. Processes radiological atmosphere exposure for all entities.
+     * TO:AR p.56:
+     * - Infantry: After 30 turns of exposure, take 1D6 damage per turn
+     * - Vehicles (unsealed): After 90 turns of exposure, crew killed
+     */
+    public void processRadiologicalExposure() {
+        PlanetaryConditions conditions = game.getPlanetaryConditions();
+        AtmosphereToxicity toxicity = conditions.getAtmosphereToxicity();
+        AtmosphereContamination contamination = conditions.getAtmosphereContamination();
+
+        // Only process if radiological contamination is present
+        if (!contamination.isRadiological()) {
+            // Reset exposure counters if atmosphere is no longer radiological
+            for (Entity entity : game.getEntitiesVector()) {
+                if (entity.getRadiologicalExposureTurns() > 0) {
+                    entity.resetRadiologicalExposure();
+                }
+            }
+            return;
+        }
+
+        for (Entity entity : game.getEntitiesVector()) {
+            if (entity.isDestroyed() || entity.isDoomed()) {
+                continue;
+            }
+
+            // Check if entity is protected from radiological exposure
+            boolean isProtected = false;
+
+            // Entities in buildings are protected
+            if (Compute.isInBuilding(game, entity)) {
+                isProtected = true;
+            }
+
+            // Environmental sealing protects
+            if (entity.hasEnvironmentalSealing()) {
+                isProtected = true;
+            }
+
+            // Infantry with appropriate gear are protected
+            if (entity.isConventionalInfantry() && (entity instanceof Infantry infantry)) {
+                if (infantry.isProtectedFromAtmosphereToxicity(toxicity)) {
+                    isProtected = true;
+                }
+            }
+
+            if (isProtected) {
+                // Reset exposure if now protected
+                if (entity.getRadiologicalExposureTurns() > 0) {
+                    entity.resetRadiologicalExposure();
+                }
+                continue;
+            }
+
+            // Increment exposure for unprotected entities
+            entity.incrementRadiologicalExposure();
+            int exposureTurns = entity.getRadiologicalExposureTurns();
+
+            // Apply effects based on exposure threshold
+            if (entity.isConventionalInfantry()) {
+                // Infantry: After 30 turns, take 1D6 damage per turn
+                if (exposureTurns >= 30) {
+                    int radiationDamage = Compute.d6();
+                    Report report = new Report(6058);
+                    report.subject = entity.getId();
+                    report.addDesc(entity);
+                    report.add(exposureTurns);
+                    report.add(radiationDamage);
+                    addReport(report);
+
+                    HitData hit = new HitData(Infantry.LOC_INFANTRY);
+                    addReport(damageEntity(entity, hit, radiationDamage));
+                }
+            } else if (entity instanceof Tank && !entity.hasEnvironmentalSealing()) {
+                // Vehicles (unsealed): After 90 turns, crew killed
+                if (exposureTurns >= 90) {
+                    Report report = new Report(6059);
+                    report.subject = entity.getId();
+                    report.addDesc(entity);
+                    report.add(exposureTurns);
+                    addReport(report);
+
+                    entity.getCrew().setDoomed(true);
                 }
             }
         }

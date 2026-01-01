@@ -71,6 +71,8 @@ import megamek.common.moves.MovePath;
 import megamek.common.moves.MoveStep;
 import megamek.common.net.packets.InvalidPacketDataException;
 import megamek.common.options.OptionsConstants;
+import megamek.common.planetaryConditions.AtmosphereContamination;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
 import megamek.common.planetaryConditions.PlanetaryConditions;
 import megamek.common.rolls.PilotingRollData;
 import megamek.common.rolls.Roll;
@@ -244,6 +246,8 @@ class MovePathHandler extends AbstractTWRuleHandler {
                           entity);
                 }
                 gameManager.checkForTakeoffDamage(aero);
+                // Fire effects in flammable atmosphere (TO:AR p.56)
+                checkAeroTakeoffFireEffects(entity, md.getFinalCoords(), entity.getBoardId());
             }
             entity.setDone(true);
             gameManager.entityUpdate(entity.getId());
@@ -266,6 +270,8 @@ class MovePathHandler extends AbstractTWRuleHandler {
                         gameManager.applyDropShipProximityDamage(md.getFinalCoords(), boardId, dropship);
                     }
                     gameManager.checkForTakeoffDamage(aero);
+                    // Fire effects in flammable atmosphere (TO:AR p.56)
+                    checkAeroTakeoffFireEffects(entity, md.getFinalCoords(), entity.getBoardId());
                 }
             }
             entity.setDone(true);
@@ -287,6 +293,8 @@ class MovePathHandler extends AbstractTWRuleHandler {
                   md.getFinalCoords().translated(md.getFinalFacing(), aero.getLandingLength());
             gameManager.checkLandingTerrainEffects(aero, isVertical, md.getFinalCoords(), finalPosition,
                   md.getFinalBoardId(), md.getFinalFacing());
+            // Fire effects in flammable atmosphere (TO:AR p.56)
+            checkAeroLandingFireEffects(entity, finalPosition, md.getFinalBoardId());
             aero.land();
             entity.setPosition(finalPosition);
             entity.setDone(true);
@@ -979,6 +987,39 @@ class MovePathHandler extends AbstractTWRuleHandler {
                 gameManager.getMainPhaseReport().addAll(gameManager.vehicleMotiveDamage((Tank) entity, modifier,
                       false, -1, true));
                 Report.addNewline(gameManager.getMainPhaseReport());
+            }
+
+            // Jump jet fire in flammable atmosphere (TO:AR p.56)
+            PlanetaryConditions conditions = getGame().getPlanetaryConditions();
+            AtmosphereToxicity toxicity = conditions.getAtmosphereToxicity();
+            AtmosphereContamination contamination = conditions.getAtmosphereContamination();
+            if (contamination.isFlammable() && !curHex.containsTerrain(Terrains.WATER)) {
+                if (toxicity.isToxic()) {
+                    // Toxic Flammable: Instant fire at landing hex
+                    if (!curHex.containsTerrain(Terrains.FIRE)) {
+                        report = new Report(6056);
+                        report.subject = entity.getId();
+                        report.add(curPos.getBoardNum());
+                        gameManager.getMainPhaseReport().add(report);
+                        gameManager.ignite(curPos, curBoardId, Terrains.FIRE_LVL_NORMAL,
+                              gameManager.getMainPhaseReport());
+                    }
+                } else if (toxicity.isTainted()) {
+                    // Tainted Flammable: Roll to ignite landing hex
+                    int igniteTarget = (entity instanceof Infantry) ? 9 : 7;
+                    Roll diceRoll = Compute.rollD6(2);
+                    if (diceRoll.getIntValue() >= igniteTarget) {
+                        report = new Report(6057);
+                        report.subject = entity.getId();
+                        report.add(curPos.getBoardNum());
+                        report.add(diceRoll);
+                        gameManager.getMainPhaseReport().add(report);
+                        if (!curHex.containsTerrain(Terrains.FIRE)) {
+                            gameManager.ignite(curPos, curBoardId, Terrains.FIRE_LVL_NORMAL,
+                                  gameManager.getMainPhaseReport());
+                        }
+                    }
+                }
             }
 
         } // End entity-is-jumping
@@ -3780,5 +3821,101 @@ class MovePathHandler extends AbstractTWRuleHandler {
 
     private boolean usingAeroOnGroundMovement() {
         return getGame().getOptions().booleanOption(OptionsConstants.ADVANCED_AERO_RULES_AERO_GROUND_MOVE);
+    }
+
+    /**
+     * Checks for fire effects when aerospace units take off in a flammable atmosphere (TO:AR p.56).
+     * - Flammable Tainted: Roll 6+ to ignite takeoff hex
+     * - Flammable Toxic: Automatic ignition
+     *
+     * @param entity   The aerospace unit taking off
+     * @param position The takeoff position
+     * @param boardId  The board ID
+     */
+    private void checkAeroTakeoffFireEffects(Entity entity, Coords position, int boardId) {
+        PlanetaryConditions conditions = getGame().getPlanetaryConditions();
+        AtmosphereToxicity toxicity = conditions.getAtmosphereToxicity();
+        AtmosphereContamination contamination = conditions.getAtmosphereContamination();
+        Hex hex = getGame().getHex(position, boardId);
+
+        if (hex == null || !contamination.isFlammable() || hex.containsTerrain(Terrains.WATER)) {
+            return;
+        }
+
+        if (toxicity.isToxic()) {
+            // Toxic Flammable: Automatic ignition at takeoff hex
+            if (!hex.containsTerrain(Terrains.FIRE)) {
+                Report report = new Report(6098);
+                report.subject = entity.getId();
+                report.addDesc(entity);
+                report.add(position.getBoardNum());
+                gameManager.getMainPhaseReport().add(report);
+                gameManager.ignite(position, boardId, Terrains.FIRE_LVL_NORMAL,
+                      gameManager.getMainPhaseReport());
+            }
+        } else if (toxicity.isTainted()) {
+            // Tainted Flammable: Roll 6+ to ignite takeoff hex
+            Roll diceRoll = Compute.rollD6(2);
+            if (diceRoll.getIntValue() >= 6) {
+                Report report = new Report(6099);
+                report.subject = entity.getId();
+                report.addDesc(entity);
+                report.add(position.getBoardNum());
+                report.add(diceRoll);
+                gameManager.getMainPhaseReport().add(report);
+                if (!hex.containsTerrain(Terrains.FIRE)) {
+                    gameManager.ignite(position, boardId, Terrains.FIRE_LVL_NORMAL,
+                          gameManager.getMainPhaseReport());
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks for fire effects when aerospace units land in a flammable atmosphere (TO:AR p.56).
+     * - Flammable Tainted: Roll 6+ to ignite landing hex
+     * - Flammable Toxic: Automatic ignition
+     *
+     * @param entity   The aerospace unit landing
+     * @param position The landing position
+     * @param boardId  The board ID
+     */
+    private void checkAeroLandingFireEffects(Entity entity, Coords position, int boardId) {
+        PlanetaryConditions conditions = getGame().getPlanetaryConditions();
+        AtmosphereToxicity toxicity = conditions.getAtmosphereToxicity();
+        AtmosphereContamination contamination = conditions.getAtmosphereContamination();
+        Hex hex = getGame().getHex(position, boardId);
+
+        if (hex == null || !contamination.isFlammable() || hex.containsTerrain(Terrains.WATER)) {
+            return;
+        }
+
+        if (toxicity.isToxic()) {
+            // Toxic Flammable: Automatic ignition at landing hex
+            if (!hex.containsTerrain(Terrains.FIRE)) {
+                Report report = new Report(6112);
+                report.subject = entity.getId();
+                report.addDesc(entity);
+                report.add(position.getBoardNum());
+                gameManager.getMainPhaseReport().add(report);
+                gameManager.ignite(position, boardId, Terrains.FIRE_LVL_NORMAL,
+                      gameManager.getMainPhaseReport());
+            }
+        } else if (toxicity.isTainted()) {
+            // Tainted Flammable: Roll 6+ to ignite landing hex
+            Roll diceRoll = Compute.rollD6(2);
+            if (diceRoll.getIntValue() >= 6) {
+                Report report = new Report(6113);
+                report.subject = entity.getId();
+                report.addDesc(entity);
+                report.add(position.getBoardNum());
+                report.add(diceRoll);
+                gameManager.getMainPhaseReport().add(report);
+                if (!hex.containsTerrain(Terrains.FIRE)) {
+                    gameManager.ignite(position, boardId, Terrains.FIRE_LVL_NORMAL,
+                          gameManager.getMainPhaseReport());
+                }
+            }
+        }
     }
 }

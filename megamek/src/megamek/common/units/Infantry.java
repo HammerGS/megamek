@@ -68,6 +68,7 @@ import megamek.common.game.Game;
 import megamek.common.interfaces.ITechnology;
 import megamek.common.moves.MoveStep;
 import megamek.common.options.OptionsConstants;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
 import megamek.common.planetaryConditions.PlanetaryConditions;
 import megamek.common.planetaryConditions.Wind;
 import megamek.common.rolls.PilotingRollData;
@@ -2063,6 +2064,52 @@ public class Infantry extends Entity {
                   || armorKit.hasSubType(MiscType.S_TOXIC_ATMOSPHERE)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if this infantry unit is protected from tainted/toxic atmosphere conditions.
+     * Based on Tactical Operations: Advanced Rules (TO:AR) p.56.
+     *
+     * <p>Protection requirements:</p>
+     * <ul>
+     *   <li><b>Tainted:</b> XCT specialization, or XCT vacuum/space suit armor kit</li>
+     *   <li><b>Toxic:</b> S_TOXIC_ATMOSPHERE armor kit required</li>
+     * </ul>
+     *
+     * @param toxicity the atmosphere toxicity level to check against
+     * @return true if protected from the given toxicity level
+     */
+    public boolean isProtectedFromAtmosphereToxicity(AtmosphereToxicity toxicity) {
+        if (toxicity.isBreathable()) {
+            return true;
+        }
+
+        EquipmentType armorKit = getArmorKit();
+
+        if (toxicity.isTainted()) {
+            // Tainted: XCT specialization or appropriate armor kit
+            if (isXCT()) {
+                return true;
+            }
+            if (armorKit != null) {
+                if (armorKit.hasSubType(MiscType.S_SPACE_SUIT)
+                      || armorKit.hasSubType(MiscType.S_XCT_VACUUM)
+                      || armorKit.hasSubType(MiscType.S_TOXIC_ATMOSPHERE)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if (toxicity.isToxic()) {
+            // Toxic: Only S_TOXIC_ATMOSPHERE armor kit provides protection
+            if (armorKit != null) {
+                return armorKit.hasSubType(MiscType.S_TOXIC_ATMOSPHERE);
+            }
+            return false;
         }
 
         return false;

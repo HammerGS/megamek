@@ -48,6 +48,9 @@ import megamek.common.equipment.EquipmentMode;
 import megamek.common.equipment.MiscType;
 import megamek.common.equipment.Mounted;
 import megamek.common.options.OptionsConstants;
+import megamek.common.planetaryConditions.AtmosphereContamination;
+import megamek.common.planetaryConditions.AtmosphereToxicity;
+import megamek.common.planetaryConditions.PlanetaryConditions;
 import megamek.common.rolls.PilotingRollData;
 import megamek.common.rolls.Roll;
 import megamek.common.rolls.TargetRoll;
@@ -475,6 +478,43 @@ class HeatResolver extends AbstractTWRuleHandler {
             entity.heatBuildup = 0;
             gameManager.getMainPhaseReport().addAll(rhsReports);
             gameManager.getMainPhaseReport().addAll(heatEffectsReports);
+
+            // Heat-based ignition in flammable atmosphere (TO:AR p.56)
+            // Units at 15+ heat may ignite their hex
+            if (entity.heat >= 15 && entityHex != null) {
+                PlanetaryConditions conditions = getGame().getPlanetaryConditions();
+                AtmosphereToxicity toxicity = conditions.getAtmosphereToxicity();
+                AtmosphereContamination contamination = conditions.getAtmosphereContamination();
+                if (contamination.isFlammable() && !entityHex.containsTerrain(Terrains.WATER)) {
+                    if (toxicity.isToxic()) {
+                        // Toxic Flammable: Automatic ignition at 15+ heat
+                        if (!entityHex.containsTerrain(Terrains.FIRE)) {
+                            report = new Report(6054);
+                            report.subject = entity.getId();
+                            report.addDesc(entity);
+                            report.add(entity.heat);
+                            addReport(report);
+                            gameManager.ignite(entity.getPosition(), entity.getBoardId(),
+                                  Terrains.FIRE_LVL_NORMAL, gameManager.getMainPhaseReport());
+                        }
+                    } else if (toxicity.isTainted()) {
+                        // Tainted Flammable: Roll 2D6, 10+ ignites hex
+                        Roll diceRoll = Compute.rollD6(2);
+                        if (diceRoll.getIntValue() >= 10) {
+                            report = new Report(6094);
+                            report.subject = entity.getId();
+                            report.addDesc(entity);
+                            report.add(entity.heat);
+                            report.add(diceRoll);
+                            addReport(report);
+                            if (!entityHex.containsTerrain(Terrains.FIRE)) {
+                                gameManager.ignite(entity.getPosition(), entity.getBoardId(),
+                                      Terrains.FIRE_LVL_NORMAL, gameManager.getMainPhaseReport());
+                            }
+                        }
+                    }
+                }
+            }
 
             // Does the unit have inferno ammo?
             if (entity.hasInfernoAmmo()) {
