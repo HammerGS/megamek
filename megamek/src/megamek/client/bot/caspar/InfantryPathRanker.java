@@ -32,6 +32,8 @@
  */
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.RankedPath;
 import java.util.List;
 
 import megamek.client.bot.caspar.FireControl.FireControlType;

@@ -33,6 +33,14 @@
  */
 package megamek.client.bot.caspar;
 
+
+
+
+
+import megamek.client.bot.princess.HonorUtil;
+import megamek.client.bot.princess.IHonorUtil;
+import megamek.client.bot.princess.RankedPath;
+import megamek.client.bot.princess.CardinalEdge;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -421,7 +429,7 @@ public class Caspar extends BotClient {
     public void setCasparSettings(final CasparSettings CasparSettings) {
         LOGGER.info("New behavior settings for {}\n{}", getName(), CasparSettings.toLog());
         try {
-            this.CasparSettings = CasparSettings.getCopy();
+            this.CasparSettings = CasparSettings.getCasparCopy();
         } catch (final CasparException e) {
             LOGGER.error("", e);
             return;
@@ -3109,7 +3117,7 @@ public class Caspar extends BotClient {
     }
 
     public void sendCasparSettings() {
-        send(new Packet(PacketCommand.Caspar_SETTINGS, CasparSettings));
+        send(new Packet(PacketCommand.CASPAR_SETTINGS, CasparSettings));
     }
 
     @Override

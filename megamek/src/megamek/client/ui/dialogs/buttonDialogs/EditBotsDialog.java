@@ -224,7 +224,7 @@ public class EditBotsDialog extends AbstractButtonDialog {
                     gridPanel.add(new JLabel(LOCAL + " CASPAR"));
                     try {
                         // Copy to protect the current settings
-                        casparConfigs.put(player, caspar.getCasparSettings().getCopy());
+                        casparConfigs.put(player, caspar.getCasparSettings().getCasparCopy());
                     } catch (CasparException e) {
                         logger.error(e, "");
                         // fallback to default

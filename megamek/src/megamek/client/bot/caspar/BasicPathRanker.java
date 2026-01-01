@@ -33,6 +33,8 @@
  */
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.RankedPath;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;

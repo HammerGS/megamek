@@ -333,7 +333,7 @@ public class Precognition implements Runnable {
                 case SERVER_VERSION_CHECK:
                 case ILLEGAL_CLIENT_VERSION:
                 case LOCAL_PN:
-                case Caspar_SETTINGS:
+                case CASPAR_SETTINGS:
                 case FORCE_UPDATE:
                 case FORCE_DELETE:
                 case SENDING_REPORTS_SPECIAL:

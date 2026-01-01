@@ -31,7 +31,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,7 +49,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import megamek.client.bot.princess.PathRanker.PathRankerType;
+import megamek.client.bot.caspar.PathRanker.PathRankerType;
+import megamek.client.bot.princess.CardinalEdge;
 import megamek.common.Facing;
 import megamek.common.Hex;
 import megamek.common.MPCalculationSetting;
@@ -81,12 +82,12 @@ import org.junit.jupiter.api.Test;
  * @author Deric "Netzilla" Page (deric dot page at usa dot net)
  * @since 11/22/13 8:33 AM
  */
-class PrincessTest {
+class CasparTest {
 
     static WeaponType mockAC5 = (WeaponType) EquipmentType.get("ISAC5");
     static AmmoType mockAC5AmmoType = (AmmoType) EquipmentType.get("ISAC5 Ammo");
     static WeaponType mockRL20 = (WeaponType) EquipmentType.get("RL20");
-    private Princess mockPrincess;
+    private Caspar mockCaspar;
     private BasicPathRanker mockPathRanker;
 
     @BeforeAll
@@ -100,48 +101,48 @@ class PrincessTest {
 
         MoraleUtil mockMoralUtil = mock(MoraleUtil.class);
 
-        mockPrincess = mock(Princess.class);
-        when(mockPrincess.getPathRanker(PathRankerType.Basic)).thenReturn(mockPathRanker);
-        when(mockPrincess.getPathRanker(any(Entity.class))).thenReturn(mockPathRanker);
-        when(mockPrincess.getMoraleUtil()).thenReturn(mockMoralUtil);
-        when(mockPrincess.calcAmmoConservation(any(Entity.class))).thenCallRealMethod();
-        when(mockPrincess.shouldAbandon(any(Entity.class))).thenCallRealMethod();
+        mockCaspar = mock(Caspar.class);
+        when(mockCaspar.getPathRanker(PathRankerType.Basic)).thenReturn(mockPathRanker);
+        when(mockCaspar.getPathRanker(any(Entity.class))).thenReturn(mockPathRanker);
+        when(mockCaspar.getMoraleUtil()).thenReturn(mockMoralUtil);
+        when(mockCaspar.calcAmmoConservation(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.shouldAbandon(any(Entity.class))).thenCallRealMethod();
     }
 
     @Test
     void testCalculateAdjustment() {
         // Test a +3 adjustment.
-        assertEquals(3, Princess.calculateAdjustment("+++"));
-        assertEquals(2, Princess.calculateAdjustment("++3"));
-        assertEquals(2, Princess.calculateAdjustment("3++"));
+        assertEquals(3, Caspar.calculateAdjustment("+++"));
+        assertEquals(2, Caspar.calculateAdjustment("++3"));
+        assertEquals(2, Caspar.calculateAdjustment("3++"));
 
         // Test a -2 adjustment.
-        assertEquals(-2, Princess.calculateAdjustment("--"));
+        assertEquals(-2, Caspar.calculateAdjustment("--"));
 
         // Test an adjustment with some bad characters.
-        assertEquals(1, Princess.calculateAdjustment("+p"));
+        assertEquals(1, Caspar.calculateAdjustment("+p"));
 
         // Test an adjustment with a number should set the value to the number.
-        assertEquals(5, Princess.calculateAdjustment("5"));
+        assertEquals(5, Caspar.calculateAdjustment("5"));
 
         // Test an adjustment with a number should set the value to the number.
-        assertEquals(-5, Princess.calculateAdjustment("-5"));
+        assertEquals(-5, Caspar.calculateAdjustment("-5"));
 
         // Test an adjustment with a number should set the value to the number.
-        assertEquals(22, Princess.calculateAdjustment("+22"));
+        assertEquals(22, Caspar.calculateAdjustment("+22"));
 
         // Test an empty ticks argument.
-        assertEquals(0, Princess.calculateAdjustment(""));
+        assertEquals(0, Caspar.calculateAdjustment(""));
 
         // Test a null ticks argument.
-        assertEquals(0, Princess.calculateAdjustment(null));
+        assertEquals(0, Caspar.calculateAdjustment(null));
     }
 
     @Test
     void testCalculateMoveIndex() {
         final double TOLERANCE = 0.001;
-        when(mockPrincess.calculateMoveIndex(any(Entity.class), any(StringBuilder.class))).thenCallRealMethod();
-        when(mockPrincess.isFallingBack(any(Entity.class))).thenReturn(false);
+        when(mockCaspar.calculateMoveIndex(any(Entity.class), any(StringBuilder.class))).thenCallRealMethod();
+        when(mockCaspar.isFallingBack(any(Entity.class))).thenReturn(false);
 
         when(mockPathRanker.distanceToClosestEnemy(any(Entity.class),
               nullable(Coords.class),
@@ -159,48 +160,48 @@ class PrincessTest {
         when(mockMek.isStealthOn()).thenReturn(false);
         when(mockMek.isVoidSigActive()).thenReturn(false);
         when(mockMek.isVoidSigOn()).thenReturn(false);
-        double actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        double actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(1.111, actual, TOLERANCE);
 
         // Make the mek prone.
         when(mockMek.isProne()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(1.222, actual, TOLERANCE);
 
         // Make the mek flee.
         when(mockMek.isProne()).thenReturn(false);
-        when(mockPrincess.isFallingBack(eq(mockMek))).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        when(mockCaspar.isFallingBack(eq(mockMek))).thenReturn(true);
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(2.222, actual, TOLERANCE);
 
         // Make the mek a commander.
-        when(mockPrincess.isFallingBack(eq(mockMek))).thenReturn(false);
+        when(mockCaspar.isFallingBack(eq(mockMek))).thenReturn(false);
         when(mockMek.isCommander()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(0.555, actual, TOLERANCE);
 
         // Make it a civilian mek.
         when(mockMek.isCommander()).thenReturn(false);
         when(mockMek.isMilitary()).thenReturn(false);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(5.555, actual, TOLERANCE);
 
         // Make it stealthy;
         when(mockMek.isMilitary()).thenReturn(true);
         when(mockMek.isStealthActive()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(0.37, actual, TOLERANCE);
         when(mockMek.isStealthActive()).thenReturn(false);
         when(mockMek.isStealthOn()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(0.37, actual, TOLERANCE);
         when(mockMek.isStealthOn()).thenReturn(false);
         when(mockMek.isVoidSigActive()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(0.37, actual, TOLERANCE);
         when(mockMek.isVoidSigActive()).thenReturn(false);
         when(mockMek.isVoidSigOn()).thenReturn(true);
-        actual = mockPrincess.calculateMoveIndex(mockMek, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockMek, new StringBuilder());
         assertEquals(0.37, actual, TOLERANCE);
 
         // Test a BA unit.
@@ -214,7 +215,7 @@ class PrincessTest {
         when(mockBA.isStealthOn()).thenReturn(false);
         when(mockBA.isVoidSigActive()).thenReturn(false);
         when(mockBA.isVoidSigOn()).thenReturn(false);
-        actual = mockPrincess.calculateMoveIndex(mockBA, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockBA, new StringBuilder());
         assertEquals(6.666, actual, TOLERANCE);
 
         // Test an Inf unit.
@@ -229,7 +230,7 @@ class PrincessTest {
         when(mockInf.isStealthOn()).thenReturn(false);
         when(mockInf.isVoidSigActive()).thenReturn(false);
         when(mockInf.isVoidSigOn()).thenReturn(false);
-        actual = mockPrincess.calculateMoveIndex(mockInf, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockInf, new StringBuilder());
         assertEquals(30, actual, TOLERANCE);
 
         // Test a Tank.
@@ -244,14 +245,14 @@ class PrincessTest {
         when(mockTank.isStealthOn()).thenReturn(false);
         when(mockTank.isVoidSigActive()).thenReturn(false);
         when(mockTank.isVoidSigOn()).thenReturn(false);
-        actual = mockPrincess.calculateMoveIndex(mockTank, new StringBuilder());
+        actual = mockCaspar.calculateMoveIndex(mockTank, new StringBuilder());
         assertEquals(2.5, actual, TOLERANCE);
     }
 
     @Test
     void testGetEntityToMove() {
-        when(mockPrincess.getEntityToMove()).thenCallRealMethod();
-        when(mockPrincess.isImmobilized(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.getEntityToMove()).thenCallRealMethod();
+        when(mockCaspar.isImmobilized(any(Entity.class))).thenCallRealMethod();
 
         Coords mockCoords = mock(Coords.class);
 
@@ -260,21 +261,21 @@ class PrincessTest {
         when(mockMek.isOffBoard()).thenReturn(false);
         when(mockMek.getPosition()).thenReturn(mockCoords);
         when(mockMek.isSelectableThisTurn()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(eq(mockMek), any(StringBuilder.class))).thenReturn(1.111);
+        when(mockCaspar.calculateMoveIndex(eq(mockMek), any(StringBuilder.class))).thenReturn(1.111);
 
         Entity mockBA = mock(BattleArmor.class);
         when(mockBA.getRunMP()).thenReturn(3);
         when(mockBA.isOffBoard()).thenReturn(false);
         when(mockBA.getPosition()).thenReturn(mockCoords);
         when(mockBA.isSelectableThisTurn()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(eq(mockBA), any(StringBuilder.class))).thenReturn(6.666);
+        when(mockCaspar.calculateMoveIndex(eq(mockBA), any(StringBuilder.class))).thenReturn(6.666);
 
         Entity mockTank = mock(Tank.class);
         when(mockTank.getRunMP()).thenReturn(6);
         when(mockTank.isOffBoard()).thenReturn(false);
         when(mockTank.getPosition()).thenReturn(mockCoords);
         when(mockTank.isSelectableThisTurn()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(eq(mockTank), any(StringBuilder.class))).thenReturn(2.5);
+        when(mockCaspar.calculateMoveIndex(eq(mockTank), any(StringBuilder.class))).thenReturn(2.5);
 
         Entity mockEjectedMekwarrior = mock(MekWarrior.class);
         when(mockEjectedMekwarrior.getRunMP()).thenReturn(1);
@@ -294,7 +295,7 @@ class PrincessTest {
         when(mockOffBoardArty.getPosition()).thenReturn(mockCoords);
         when(mockOffBoardArty.isSelectableThisTurn()).thenReturn(true);
         when(mockOffBoardArty.isOffBoard()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(eq(mockOffBoardArty), any(StringBuilder.class))).thenReturn(10.0);
+        when(mockCaspar.calculateMoveIndex(eq(mockOffBoardArty), any(StringBuilder.class))).thenReturn(10.0);
 
         // Test a list of normal units.
         Game mockGame = mock(Game.class);
@@ -309,37 +310,37 @@ class PrincessTest {
         PlanetaryConditions mockPC = new PlanetaryConditions();
         mockPC.setGravity(1.0f);
         when(mockGame.getPlanetaryConditions()).thenReturn(mockPC);
-        when(mockPrincess.getGame()).thenReturn(mockGame);
+        when(mockCaspar.getGame()).thenReturn(mockGame);
 
         List<Entity> testEntityList = new ArrayList<>();
         testEntityList.add(mockMek);
         testEntityList.add(mockBA);
         testEntityList.add(mockTank);
-        when(mockPrincess.getEntitiesOwned()).thenReturn(testEntityList);
-        Entity pickedEntity = mockPrincess.getEntityToMove();
+        when(mockCaspar.getEntitiesOwned()).thenReturn(testEntityList);
+        Entity pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockBA, pickedEntity);
 
         // Add the off-board artillery, which should be ignored. Otherwise, it would be
         // picked as the next to move.
         testEntityList.add(mockOffBoardArty);
-        pickedEntity = mockPrincess.getEntityToMove();
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockBA, pickedEntity);
 
         // Mark the battle armor as having already been moved.
         when(mockBA.isSelectableThisTurn()).thenReturn(false);
-        pickedEntity = mockPrincess.getEntityToMove();
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockTank, pickedEntity);
 
         // Add the immobilized mek, which should be picked as the next to move.
         testEntityList.add(mockImmobileMek);
-        pickedEntity = mockPrincess.getEntityToMove();
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockImmobileMek, pickedEntity);
 
         // Replace the immobilized mek with the ejected mekwarrior, which should now be
         // the next to move.
         testEntityList.remove(mockImmobileMek);
         testEntityList.add(mockEjectedMekwarrior);
-        pickedEntity = mockPrincess.getEntityToMove();
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockEjectedMekwarrior, pickedEntity);
 
         // Test a list that contains a unit with a move index of 0.
@@ -347,14 +348,14 @@ class PrincessTest {
         when(mockTank.isSelectableThisTurn()).thenReturn(false);
         when(mockImmobileMek.isSelectableThisTurn()).thenReturn(false);
         when(mockEjectedMekwarrior.isSelectableThisTurn()).thenReturn(false);
-        when(mockPrincess.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(0.0);
-        pickedEntity = mockPrincess.getEntityToMove();
+        when(mockCaspar.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(0.0);
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockMek, pickedEntity);
         when(mockBA.isSelectableThisTurn()).thenReturn(true);
         when(mockTank.isSelectableThisTurn()).thenReturn(true);
         when(mockImmobileMek.isSelectableThisTurn()).thenReturn(true);
         when(mockEjectedMekwarrior.isSelectableThisTurn()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(1.111);
+        when(mockCaspar.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(1.111);
 
         // Test a list where everyone has moved except one unit with the lowest possible
         // move index.
@@ -362,14 +363,14 @@ class PrincessTest {
         when(mockTank.isSelectableThisTurn()).thenReturn(false);
         when(mockImmobileMek.isSelectableThisTurn()).thenReturn(false);
         when(mockEjectedMekwarrior.isSelectableThisTurn()).thenReturn(false);
-        when(mockPrincess.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(Double.MIN_VALUE);
-        pickedEntity = mockPrincess.getEntityToMove();
+        when(mockCaspar.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(Double.MIN_VALUE);
+        pickedEntity = mockCaspar.getEntityToMove();
         assertEquals(mockMek, pickedEntity);
         when(mockBA.isSelectableThisTurn()).thenReturn(true);
         when(mockTank.isSelectableThisTurn()).thenReturn(true);
         when(mockImmobileMek.isSelectableThisTurn()).thenReturn(true);
         when(mockEjectedMekwarrior.isSelectableThisTurn()).thenReturn(true);
-        when(mockPrincess.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(1.111);
+        when(mockCaspar.calculateMoveIndex(mockMek, new StringBuilder())).thenReturn(1.111);
     }
 
     @Test
@@ -377,36 +378,36 @@ class PrincessTest {
         Entity mockMek = mock(BipedMek.class);
         when(mockMek.isCrippled()).thenReturn(false);
 
-        when(mockPrincess.wantsToFallBack(any(Entity.class))).thenCallRealMethod();
-        when(mockPrincess.getForcedWithdrawal()).thenReturn(true);
-        when(mockPrincess.getFallBack()).thenReturn(false);
-        when(mockPrincess.getFleeBoard()).thenReturn(false);
+        when(mockCaspar.wantsToFallBack(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.getForcedWithdrawal()).thenReturn(true);
+        when(mockCaspar.getFallBack()).thenReturn(false);
+        when(mockCaspar.getFleeBoard()).thenReturn(false);
         // Forced Withdrawal Enabled, Mek Undamaged, Fall Back disabled, Flee Board
         // disabled
         // Should Not Fall Back
-        assertFalse(mockPrincess.wantsToFallBack(mockMek));
+        assertFalse(mockCaspar.wantsToFallBack(mockMek));
 
-        when(mockPrincess.getFallBack()).thenReturn(true);
+        when(mockCaspar.getFallBack()).thenReturn(true);
         // Fall Back Enabled
         // Should Fall Back
-        assertTrue(mockPrincess.wantsToFallBack(mockMek));
+        assertTrue(mockCaspar.wantsToFallBack(mockMek));
 
-        when(mockPrincess.getFallBack()).thenReturn(false);
-        when(mockPrincess.getFleeBoard()).thenReturn(true);
+        when(mockCaspar.getFallBack()).thenReturn(false);
+        when(mockCaspar.getFleeBoard()).thenReturn(true);
         // Fall Back Disabled, Flee Board Enabled (Should Never Happen)
         // Should Not Fall Back
-        assertFalse(mockPrincess.wantsToFallBack(mockMek));
+        assertFalse(mockCaspar.wantsToFallBack(mockMek));
 
-        when(mockPrincess.getFleeBoard()).thenReturn(false);
+        when(mockCaspar.getFleeBoard()).thenReturn(false);
         when(mockMek.isCrippled()).thenReturn(true);
         // Fall Back and Flee Board Disabled, Mek Crippled, Forced Withdrawal Enabled
         // Should Fall Back
-        assertTrue(mockPrincess.wantsToFallBack(mockMek));
+        assertTrue(mockCaspar.wantsToFallBack(mockMek));
 
-        when(mockPrincess.getForcedWithdrawal()).thenReturn(false);
+        when(mockCaspar.getForcedWithdrawal()).thenReturn(false);
         // Fall Back and Flee Board Disabled, Mek Crippled, Forced Withdrawal Disabled
         // Should Not Fall Back
-        assertFalse(mockPrincess.wantsToFallBack(mockMek));
+        assertFalse(mockCaspar.wantsToFallBack(mockMek));
     }
 
     @Test
@@ -416,32 +417,32 @@ class PrincessTest {
         when(mockMek.isCrippled(anyBoolean())).thenReturn(false);
         when(mockMek.getId()).thenReturn(1);
 
-        when(mockPrincess.wantsToFallBack(any(Entity.class))).thenReturn(false);
-        when(mockPrincess.isFallingBack(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.wantsToFallBack(any(Entity.class))).thenReturn(false);
+        when(mockCaspar.isFallingBack(any(Entity.class))).thenCallRealMethod();
 
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getDestinationEdge()).thenReturn(CardinalEdge.NONE);
         when(mockBehavior.isForcedWithdrawal()).thenReturn(true);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         // A normal undamaged mek.
-        assertFalse(mockPrincess.isFallingBack(mockMek));
+        assertFalse(mockCaspar.isFallingBack(mockMek));
 
         // A mobile mek that wants to fall back (for any reason).
         when(mockMek.isCrippled(anyBoolean())).thenReturn(true);
-        assertTrue(mockPrincess.isFallingBack(mockMek));
+        assertTrue(mockCaspar.isFallingBack(mockMek));
 
         // A mek whose bot is set for a destination edge
         when(mockBehavior.getDestinationEdge()).thenReturn(CardinalEdge.NEAREST);
-        assertTrue(mockPrincess.isFallingBack(mockMek));
+        assertTrue(mockCaspar.isFallingBack(mockMek));
     }
 
     @Test
     void testMustFleeBoard() {
-        when(mockPrincess.mustFleeBoard(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.mustFleeBoard(any(Entity.class))).thenCallRealMethod();
 
         // Unit is not yet falling back
-        when(mockPrincess.isFallingBack(any(Entity.class))).thenReturn(false);
+        when(mockCaspar.isFallingBack(any(Entity.class))).thenReturn(false);
 
         // Unit is capable of fleeing.
         Entity mockMek = mock(BipedMek.class);
@@ -452,45 +453,45 @@ class PrincessTest {
               anyInt(),
               any(CardinalEdge.class),
               any(Game.class))).thenReturn(0);
-        when(mockPrincess.getPathRanker(any(Entity.class))).thenReturn(mockRanker);
+        when(mockCaspar.getPathRanker(any(Entity.class))).thenReturn(mockRanker);
 
         // Mock objects so we don't have nulls.
         Coords mockCoords = mock(Coords.class);
         when(mockMek.getPosition()).thenReturn(mockCoords);
-        when(mockPrincess.getHomeEdge(any(Entity.class))).thenReturn(CardinalEdge.NORTH);
+        when(mockCaspar.getHomeEdge(any(Entity.class))).thenReturn(CardinalEdge.NORTH);
         Game mockGame = mock(Game.class);
-        when(mockPrincess.getGame()).thenReturn(mockGame);
+        when(mockCaspar.getGame()).thenReturn(mockGame);
         when(mockMek.canFlee(mockMek.getPosition())).thenReturn(true);
 
         // In its current state, the entity does not need to flee the board.
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
 
         // Now the unit is falling back, but it should not flee the board unless
         // fleeBoard is enabled
         // or the unit is crippled and forcedWithdrawal is enabled
-        when(mockPrincess.isFallingBack(any(Entity.class))).thenReturn(true);
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        when(mockCaspar.isFallingBack(any(Entity.class))).thenReturn(true);
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
 
         // Even a crippled mek should not fall back unless fleeBoard or forcedWithdrawal
         // is enabled
         when(mockMek.isCrippled()).thenReturn(true);
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
 
         // Enabling forcedWithdrawal should cause fleeing, because mek is crippled
-        when(mockPrincess.getForcedWithdrawal()).thenReturn(true);
-        assertTrue(mockPrincess.mustFleeBoard(mockMek));
+        when(mockCaspar.getForcedWithdrawal()).thenReturn(true);
+        assertTrue(mockCaspar.mustFleeBoard(mockMek));
 
         // But forcedWithdrawal without a crippled mek should not flee
         when(mockMek.isCrippled()).thenReturn(false);
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
 
         // If fleeBoard is true, all units falling back should flee
-        when(mockPrincess.getFleeBoard()).thenReturn(true);
-        assertTrue(mockPrincess.mustFleeBoard(mockMek));
+        when(mockCaspar.getFleeBoard()).thenReturn(true);
+        assertTrue(mockCaspar.mustFleeBoard(mockMek));
 
         // Make the unit incapable of fleeing.
         when(mockMek.canFlee(mockMek.getPosition())).thenReturn(false);
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
 
         // The unit can flee, but is no longer on the board edge.
         when(mockMek.canFlee(mockMek.getPosition())).thenReturn(true);
@@ -498,13 +499,13 @@ class PrincessTest {
               anyInt(),
               any(CardinalEdge.class),
               any(Game.class))).thenReturn(1);
-        assertFalse(mockPrincess.mustFleeBoard(mockMek));
+        assertFalse(mockCaspar.mustFleeBoard(mockMek));
     }
 
     @Test
     void testIsImmobilized() {
-        when(mockPrincess.isImmobilized(any(Entity.class))).thenCallRealMethod();
-        when(mockPrincess.getBooleanOption(eq("tacops_careful_stand"))).thenReturn(false);
+        when(mockCaspar.isImmobilized(any(Entity.class))).thenCallRealMethod();
+        when(mockCaspar.getBooleanOption(eq("tacops_careful_stand"))).thenReturn(false);
 
         Hex mockHex = mock(Hex.class);
         when(mockHex.getLevel()).thenReturn(0);
@@ -513,12 +514,12 @@ class PrincessTest {
         PlanetaryConditions mockPC = new PlanetaryConditions();
         mockPC.setGravity(1.0f);
         when(mockGame.getPlanetaryConditions()).thenReturn(mockPC);
-        doReturn(mockGame).when(mockPrincess).getGame();
+        doReturn(mockGame).when(mockCaspar).getGame();
         when(mockGame.getHexOf(any(Targetable.class))).thenReturn(mockHex);
 
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getFallShameIndex()).thenReturn(5);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         PilotingRollData mockPilotingRollData = mock(PilotingRollData.class);
         when(mockPilotingRollData.getValue()).thenReturn(7);
@@ -546,22 +547,22 @@ class PrincessTest {
               eq(mockPosition),
               anyInt(),
               anyBoolean())).thenReturn(mockPilotingRollData);
-        assertFalse(mockPrincess.isImmobilized(mockMek));
+        assertFalse(mockCaspar.isImmobilized(mockMek));
 
         // Test a shutdown mek.
         when(mockMek.isImmobile()).thenReturn(true);
         when(mockMek.isShutDown()).thenReturn(true);
-        assertFalse(mockPrincess.isImmobilized(mockMek));
+        assertFalse(mockCaspar.isImmobilized(mockMek));
 
         // Test an immobile mek that is not shut down.
         when(mockMek.isImmobile()).thenReturn(true);
         when(mockMek.isShutDown()).thenReturn(false);
-        assertTrue(mockPrincess.isImmobilized(mockMek));
+        assertTrue(mockCaspar.isImmobilized(mockMek));
 
         // Test a mek with move 0.
         when(mockMek.isImmobile()).thenReturn(false);
         when(mockMek.getRunMP()).thenReturn(0);
-        assertTrue(mockPrincess.isImmobilized(mockMek));
+        assertTrue(mockCaspar.isImmobilized(mockMek));
         when(mockMek.getRunMP()).thenReturn(6);
 
         // Test a tank that is not immobile.
@@ -569,14 +570,14 @@ class PrincessTest {
         when(mockTank.getRunMP()).thenReturn(6);
         when(mockTank.isImmobile()).thenReturn(false);
         when(mockTank.isShutDown()).thenReturn(false);
-        assertFalse(mockPrincess.isImmobilized(mockTank));
+        assertFalse(mockCaspar.isImmobilized(mockTank));
 
         // Test a prone mek that cannot stand up.
         when(mockMek.isImmobile()).thenReturn(false);
         when(mockMek.isShutDown()).thenReturn(false);
         when(mockMek.isProne()).thenReturn(true);
         when(mockMek.cannotStandUpFromHullDown()).thenReturn(true);
-        assertTrue(mockPrincess.isImmobilized(mockMek));
+        assertTrue(mockCaspar.isImmobilized(mockMek));
 
         // Test a prone mek whose chance to stand up is better than our fall tolerance
         // threshold.
@@ -584,7 +585,7 @@ class PrincessTest {
         when(mockMek.isShutDown()).thenReturn(false);
         when(mockMek.isProne()).thenReturn(true);
         when(mockMek.cannotStandUpFromHullDown()).thenReturn(false);
-        assertFalse(mockPrincess.isImmobilized(mockMek));
+        assertFalse(mockCaspar.isImmobilized(mockMek));
 
         // Test a prone mek whose chance to stand up is worse than our fall tolerance
         // threshold.
@@ -593,7 +594,7 @@ class PrincessTest {
         when(mockMek.isShutDown()).thenReturn(false);
         when(mockMek.isProne()).thenReturn(true);
         when(mockMek.cannotStandUpFromHullDown()).thenReturn(false);
-        assertTrue(mockPrincess.isImmobilized(mockMek));
+        assertTrue(mockCaspar.isImmobilized(mockMek));
 
         // Test a stuck mek whose chance to get unstuck is better than our fall
         // tolerance threshold.
@@ -602,7 +603,7 @@ class PrincessTest {
         when(mockMek.isShutDown()).thenReturn(false);
         when(mockMek.isProne()).thenReturn(false);
         when(mockMek.isStuck()).thenReturn(true);
-        assertFalse(mockPrincess.isImmobilized(mockMek));
+        assertFalse(mockCaspar.isImmobilized(mockMek));
 
         // Test a stuck mek whose chance to get unstuck is worse than our fall tolerance
         // threshold.
@@ -611,7 +612,7 @@ class PrincessTest {
         when(mockMek.isShutDown()).thenReturn(false);
         when(mockMek.isProne()).thenReturn(false);
         when(mockMek.isStuck()).thenReturn(true);
-        assertTrue(mockPrincess.isImmobilized(mockMek));
+        assertTrue(mockCaspar.isImmobilized(mockMek));
     }
 
     @Test
@@ -621,9 +622,9 @@ class PrincessTest {
         // of 7+, 3+, 1.
 
         // Set aggression to default level
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(5);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         // Set up unit
         Mek mek1 = new BipedMek();
@@ -635,20 +636,20 @@ class PrincessTest {
         // 12s
         double target = Compute.oddsAbove(12) / 100.0;
         bin1.setShotsLeft(7);
-        Map<WeaponMounted, Double> conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        Map<WeaponMounted, Double> conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get((WeaponMounted) wpn1) <= target);
 
         // Default toHitThreshold for 3+ rounds for this level should allow firing on
         // 11s
         target = Compute.oddsAbove(11) / 100.0;
         bin1.setShotsLeft(3);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
 
         // Default toHitThreshold for 1 rounds for this level should allow firing on 10s
         target = Compute.oddsAbove(10) / 100.0;
         bin1.setShotsLeft(1);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
     }
 
@@ -659,9 +660,9 @@ class PrincessTest {
         // of 7+, 3+, 1.
 
         // Set aggression to default level
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(10);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         // Set up unit
         Mek mek1 = new BipedMek();
@@ -673,19 +674,19 @@ class PrincessTest {
         // 12s
         double target = Compute.oddsAbove(12) / 100.0;
         bin1.setShotsLeft(7);
-        Map<WeaponMounted, Double> conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        Map<WeaponMounted, Double> conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get((WeaponMounted) wpn1) <= target);
 
         // Default toHitThreshold for 3+ rounds for this level should allow firing on
         // 12s
         bin1.setShotsLeft(3);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
 
         // Default toHitThreshold for 1 rounds for this level should allow firing on 10s
         target = Compute.oddsAbove(10) / 100.0;
         bin1.setShotsLeft(1);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
     }
 
@@ -696,9 +697,9 @@ class PrincessTest {
         // of 7+, 3+, 1.
 
         // Set aggression to default level
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(0);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         // Set up unit
         Mek mek1 = new BipedMek();
@@ -710,29 +711,29 @@ class PrincessTest {
         // 12s
         double target = Compute.oddsAbove(10) / 100.0;
         bin1.setShotsLeft(7);
-        Map<WeaponMounted, Double> conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        Map<WeaponMounted, Double> conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get((WeaponMounted) wpn1) <= target);
 
         // Default toHitThreshold for 3+ rounds for this level should allow firing on
         // 11s
         target = Compute.oddsAbove(9) / 100.0;
         bin1.setShotsLeft(3);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
 
         // Default toHitThreshold for 1 rounds for this level should allow firing on 10s
         target = Compute.oddsAbove(7) / 100.0;
         bin1.setShotsLeft(1);
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
     }
 
     @Test
     void testCalcAmmoForOneShotWeapons() throws LocationFullException {
         // Set aggression to the lowest level first
-        BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(0);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         // Set up unit
         Mek mek1 = new BipedMek();
@@ -741,19 +742,19 @@ class PrincessTest {
         // Check default toHitThresholds
         // For max aggro, shoot OS weapons at TN 10 or better
         double target = Compute.oddsAbove(8) / 100.0;
-        Map<WeaponMounted, Double> conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        Map<WeaponMounted, Double> conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get((WeaponMounted) wpn1) <= target);
 
         // For default aggro, shoot OS weapons at TN 9 or better
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(5);
         target = Compute.oddsAbove(9) / 100.0;
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
 
         // For lowest aggro, shoot OS weapons at TN 8 or better
         when(mockBehavior.getHyperAggressionIndex()).thenReturn(10);
         target = Compute.oddsAbove(10) / 100.0;
-        conserveMap = mockPrincess.calcAmmoConservation(mek1);
+        conserveMap = mockCaspar.calcAmmoConservation(mek1);
         assertTrue(conserveMap.get(wpn1) <= target);
     }
 
@@ -765,7 +766,7 @@ class PrincessTest {
         assertFalse(tank.isCrippled());
         assertFalse(tank.isShutDown());
         assertFalse(tank.isDoomed());
-        assertFalse(mockPrincess.shouldAbandon(tank));
+        assertFalse(mockCaspar.shouldAbandon(tank));
     }
 
     @Test
@@ -780,7 +781,7 @@ class PrincessTest {
         assertFalse(tank.isCrippled());
         assertFalse(tank.isShutDown());
         assertFalse(tank.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(tank));
+        assertTrue(mockCaspar.shouldAbandon(tank));
     }
 
     @Test
@@ -796,7 +797,7 @@ class PrincessTest {
         assertFalse(tank.isCrippled());
         assertFalse(tank.isShutDown());
         assertFalse(tank.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(tank));
+        assertTrue(mockCaspar.shouldAbandon(tank));
     }
 
     @Test
@@ -811,7 +812,7 @@ class PrincessTest {
         assertTrue(tank.isCrippled());
         assertFalse(tank.isShutDown());
         assertFalse(tank.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(tank));
+        assertTrue(mockCaspar.shouldAbandon(tank));
     }
 
     @Test
@@ -835,7 +836,7 @@ class PrincessTest {
         assertFalse(vtol.isCrippled());
         assertFalse(vtol.isShutDown());
         assertFalse(vtol.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(vtol));
+        assertTrue(mockCaspar.shouldAbandon(vtol));
     }
 
     Board createLevelBoard(int width, int height, int level) {
@@ -873,7 +874,7 @@ class PrincessTest {
         assertFalse(aero.isCrippled());
         assertFalse(aero.isShutDown());
         assertFalse(aero.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(aero));
+        assertTrue(mockCaspar.shouldAbandon(aero));
     }
 
     @Test
@@ -898,7 +899,7 @@ class PrincessTest {
         assertTrue(aero.isCrippled());
         assertFalse(aero.isShutDown());
         assertFalse(aero.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(aero));
+        assertTrue(mockCaspar.shouldAbandon(aero));
     }
 
     @Test
@@ -926,7 +927,7 @@ class PrincessTest {
         assertFalse(aero.isCrippled());
         assertFalse(aero.isShutDown());
         assertFalse(aero.isDoomed());
-        assertFalse(mockPrincess.shouldAbandon(aero));
+        assertFalse(mockCaspar.shouldAbandon(aero));
     }
 
     @Test
@@ -958,6 +959,6 @@ class PrincessTest {
         assertFalse(aero.isCrippled());
         assertFalse(aero.isShutDown());
         assertFalse(aero.isDoomed());
-        assertTrue(mockPrincess.shouldAbandon(aero));
+        assertTrue(mockCaspar.shouldAbandon(aero));
     }
 }

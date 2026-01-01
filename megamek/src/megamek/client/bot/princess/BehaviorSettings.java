@@ -60,7 +60,7 @@ public class BehaviorSettings implements Serializable {
     @Serial
     private static final long serialVersionUID = -1895924639830817372L;
 
-    static final double[] SELF_PRESERVATION_VALUES = {
+    public static final double[] SELF_PRESERVATION_VALUES = {
           2.5,
           5,
           7.5,
@@ -73,7 +73,7 @@ public class BehaviorSettings implements Serializable {
           25,
           30 };
 
-    static final int[] FALL_SHAME_VALUES = {
+    public static final int[] FALL_SHAME_VALUES = {
           10,
           40,
           80,
@@ -86,7 +86,7 @@ public class BehaviorSettings implements Serializable {
           500,
           500 };
 
-    protected static final double[] BRAVERY = {
+    public static final double[] BRAVERY = {
           0.1,
           0.3,
           0.6,
@@ -99,7 +99,7 @@ public class BehaviorSettings implements Serializable {
           2.7,
           3.0 };
 
-    static final double[] HYPER_AGGRESSION_VALUES = {
+    public static final double[] HYPER_AGGRESSION_VALUES = {
           0.25,
           0.5,
           1,
@@ -112,7 +112,7 @@ public class BehaviorSettings implements Serializable {
           50,
           500 };
 
-    static final double[] HERD_MENTALITY_VALUES = {
+    public static final double[] HERD_MENTALITY_VALUES = {
           0.1,
           0.2,
           0.4,
@@ -336,7 +336,7 @@ public class BehaviorSettings implements Serializable {
      *
      * @param target The target to be removed.
      */
-    void removeStrategicTarget(final String target) {
+    public void removeStrategicTarget(final String target) {
         strategicBuildingTargets.remove(target);
     }
 
@@ -406,7 +406,7 @@ public class BehaviorSettings implements Serializable {
      *
      * @param id The ID of the unit to be removed.
      */
-    void removePriorityUnit(final int id) {
+    public void removePriorityUnit(final int id) {
         priorityUnitTargets.remove(id);
     }
 
@@ -415,7 +415,7 @@ public class BehaviorSettings implements Serializable {
      *
      * @param id The ID of the unit to be removed.
      */
-    void removePriorityUnit(final String id) {
+    public void removePriorityUnit(final String id) {
         if (!StringUtil.isPositiveInteger(id)) {
             return;
         }
@@ -874,7 +874,7 @@ public class BehaviorSettings implements Serializable {
      * @return TRUE if the XML was successfully parsed.
      */
     @SuppressWarnings("UnusedReturnValue")
-    boolean fromXml(final Element behavior) throws PrincessException {
+    public boolean fromXml(final Element behavior) throws PrincessException {
         final NodeList children = behavior.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             final Node child = children.item(i);
@@ -942,7 +942,7 @@ public class BehaviorSettings implements Serializable {
      *
      * @return An XML {@link org.w3c.dom.Element} describing this behavior settings object.
      */
-    Element toXml(final Document doc,
+    protected Element toXml(final Document doc,
           final boolean includeTargets) {
         try {
             final Element behavior = doc.createElement("behavior");

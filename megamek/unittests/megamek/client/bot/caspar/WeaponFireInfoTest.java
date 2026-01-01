@@ -30,7 +30,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import megamek.client.bot.princess.FireControl.FireControlType;
+import megamek.client.bot.caspar.FireControl.FireControlType;
 import megamek.common.ToHitData;
 import megamek.common.actions.WeaponAttackAction;
 import megamek.common.board.Coords;
@@ -88,7 +88,7 @@ class WeaponFireInfoTest {
     private static WeaponMounted mockWeapon;
     private static WeaponType mockWeaponType;
     private static WeaponAttackAction mockWeaponAttackAction;
-    private static Princess mockPrincess;
+    private static Caspar mockCaspar;
 
     static AmmoType mockArrowIVAmmoType = (AmmoType) EquipmentType.get("ISArrowIV Ammo");
     static AmmoType mockArrowIVHomingAmmoType = (AmmoType) EquipmentType.get("ISArrowIV Homing Ammo");
@@ -112,9 +112,9 @@ class WeaponFireInfoTest {
               any(Game.class)))
               .thenReturn(mockToHitEight);
 
-        mockPrincess = mock(Princess.class);
-        when(mockPrincess.getFireControl(FireControlType.Basic)).thenReturn(mockFireControl);
-        when(mockPrincess.getMaxWeaponRange(any(Entity.class))).thenReturn(21);
+        mockCaspar = mock(Caspar.class);
+        when(mockCaspar.getFireControl(FireControlType.Basic)).thenReturn(mockFireControl);
+        when(mockCaspar.getMaxWeaponRange(any(Entity.class))).thenReturn(21);
 
         mockShooter = mock(BipedMek.class);
         when(mockShooter.getPosition()).thenReturn(SHOOTER_COORDS);
@@ -199,7 +199,7 @@ class WeaponFireInfoTest {
     }
 
     private WeaponFireInfo setupWFI() {
-        WeaponFireInfo testWeaponFireInfo = spy(new WeaponFireInfo(mockPrincess));
+        WeaponFireInfo testWeaponFireInfo = spy(new WeaponFireInfo(mockCaspar));
         testWeaponFireInfo.setShooter(mockShooter);
         testWeaponFireInfo.setShooterState(mockShooterState);
         testWeaponFireInfo.setTarget(mockTarget);

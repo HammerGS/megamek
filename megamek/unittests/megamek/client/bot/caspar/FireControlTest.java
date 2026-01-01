@@ -31,7 +31,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +57,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.*;
 
-import megamek.client.bot.princess.PathRanker.PathRankerType;
+import megamek.client.bot.caspar.PathRanker.PathRankerType;
+import megamek.client.bot.princess.IHonorUtil;
 import megamek.codeUtilities.StringUtility;
 import megamek.common.CriticalSlot;
 import megamek.common.Hex;
@@ -157,7 +158,7 @@ class FireControlTest {
     private Board mockBoard;
     private Game mockGame;
 
-    private Princess mockPrincess;
+    private Caspar mockCaspar;
 
     private ArrayList<WeaponMounted> shooterWeapons;
     private WeaponMounted mockPPC;
@@ -182,16 +183,16 @@ class FireControlTest {
     @BeforeEach
     void beforeEach() {
         EquipmentType.initializeTypes();
-        mockPrincess = mock(Princess.class);
+        mockCaspar = mock(Caspar.class);
 
-        final BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
+        final CasparSettings mockBehavior = mock(CasparSettings.class);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
 
         final BasicPathRanker mockPathRanker = mock(BasicPathRanker.class);
-        when(mockPrincess.getPathRanker(PathRankerType.Basic)).thenReturn(mockPathRanker);
+        when(mockCaspar.getPathRanker(PathRankerType.Basic)).thenReturn(mockPathRanker);
 
         final IHonorUtil mockHonorUtil = mock(IHonorUtil.class);
-        when(mockPrincess.getHonorUtil()).thenReturn(mockHonorUtil);
+        when(mockCaspar.getHonorUtil()).thenReturn(mockHonorUtil);
 
         mockShooter = mock(BipedMek.class);
         when(mockShooter.getId()).thenReturn(1);
@@ -257,7 +258,7 @@ class FireControlTest {
         when(mockTarget.isMilitary()).thenReturn(true);
         when(mockTarget.getMovementMode()).thenReturn(EntityMovementMode.BIPED);
 
-        testFireControl = spy(new FireControl(mockPrincess));
+        testFireControl = spy(new FireControl(mockCaspar));
         doReturn(mockShooterMoveMod).when(testFireControl)
               .getAttackerMovementModifier(any(Game.class), anyInt(), nullable(EntityMovementType.class));
         doReturn(mockTargetMoveMod).when(testFireControl)
@@ -823,7 +824,7 @@ class FireControlTest {
         // Test an ammo list with only 1 bin of standard ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAC5Std);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoAC5Std, testFireControl.getHardTargetAmmo(testAmmoList, mockWeaponTypeAC5, 5));
 
         // Test an ammo list with only 1 bin of flak ammo.
@@ -874,7 +875,7 @@ class FireControlTest {
         // Test an ammo list with only 1 bin.
         List<AmmoMounted> testAmmoList = new ArrayList<>(2);
         testAmmoList.add(mockAmmoAC5Std);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertNull(testFireControl.getAntiAirAmmo(testAmmoList, mockWeaponTypeAC5, 5));
 
         // Add the flak ammo.
@@ -899,13 +900,13 @@ class FireControlTest {
         // Test an ammo list with only 1 bin of cluster ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(2);
         testAmmoList.add(mockAmmoLB10XCluster);
-        FireControl testFireControl = new FireControl(mockPrincess);
+        FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoLB10XCluster, testFireControl.getClusterAmmo(testAmmoList, mockLB10X, 5));
 
         // Test an ammo list with only 1 bin of slug ammo.
         testAmmoList = new ArrayList<>(2);
         testAmmoList.add(mockAmmoLB10XSlug);
-        testFireControl = new FireControl(mockPrincess);
+        testFireControl = new FireControl(mockCaspar);
         assertNull(testFireControl.getClusterAmmo(testAmmoList, mockLB10X, 5));
 
         // Test with both loaded
@@ -920,7 +921,7 @@ class FireControlTest {
         // Test an ammo list with only 1 bin of incendiary ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAc5Incendiary);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoAc5Incendiary, testFireControl.getIncendiaryAmmo(testAmmoList, mockWeaponTypeAC5, 5));
 
         // Test an ammo list with only 1 bin of standard ammo.
@@ -956,7 +957,7 @@ class FireControlTest {
         // Test an ammo list with only 1 bin of fléchette ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAc5Flechette);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoAc5Flechette, testFireControl.getAntiInfantryAmmo(testAmmoList, mockWeaponTypeAC5, 5));
 
         // Test an ammo list with only 1 bin of standard ammo.
@@ -993,13 +994,13 @@ class FireControlTest {
         // Test an ammo list with only 1 bin of standard ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAC5Std);
-        FireControl testFireControl = new FireControl(mockPrincess);
+        FireControl testFireControl = new FireControl(mockCaspar);
         assertNull(testFireControl.getAntiVeeAmmo(testAmmoList, mockWeaponTypeAC5, 5, false));
 
         // Test an ammo list with only 1 bin of incendiary ammo.
         testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAc5Incendiary);
-        testFireControl = new FireControl(mockPrincess);
+        testFireControl = new FireControl(mockCaspar);
         assertNull(testFireControl.getAntiVeeAmmo(testAmmoList, mockWeaponTypeAC5, 5, false));
 
         // Test a list with multiple types of ammo.
@@ -1034,7 +1035,7 @@ class FireControlTest {
         // Test a list with just HE ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoAtm5He);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoAtm5He, testFireControl.getAtmAmmo(testAmmoList, 5, mockTargetState, false));
         assertNull(testFireControl.getAtmAmmo(testAmmoList, 15, mockTargetState, false));
 
@@ -1114,7 +1115,7 @@ class FireControlTest {
         // Test a list with just SRM ammo.
         List<AmmoMounted> testAmmoList = new ArrayList<>(1);
         testAmmoList.add(mockAmmoSRM5);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
         assertEquals(mockAmmoSRM5, testFireControl.getGeneralMmlAmmo(testAmmoList, 6));
         assertNull(testFireControl.getGeneralMmlAmmo(testAmmoList, 10));
 
@@ -1138,7 +1139,7 @@ class FireControlTest {
         final Entity mockShooter = mock(BipedMek.class);
         Targetable mockTarget = mock(BipedMek.class);
         when(((Entity) mockTarget).getArmorType(anyInt())).thenReturn(EquipmentType.T_ARMOR_STANDARD);
-        final FireControl testFireControl = new FireControl(mockPrincess);
+        final FireControl testFireControl = new FireControl(mockCaspar);
 
         final Crew mockCrew = mock(Crew.class);
         when(mockShooter.getCrew()).thenReturn(mockCrew);
@@ -1245,7 +1246,7 @@ class FireControlTest {
         when(mockHex.terrainLevel(Terrains.WOODS)).thenReturn(Terrain.LEVEL_NONE);
         when(mockHex.terrainLevel(Terrains.JUNGLE)).thenReturn(Terrain.LEVEL_NONE);
         when(mockHex.terrainLevel(Terrains.SMOKE)).thenReturn(Terrain.LEVEL_NONE);
-        when(mockPrincess.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(21);
+        when(mockCaspar.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(21);
         ToHitData expected = new ToHitData();
         assertToHitDataEquals(expected,
               testFireControl.guessToHitModifierHelperForAnyAttack(mockShooter,
@@ -1627,7 +1628,7 @@ class FireControlTest {
         mockTarget = mock(BipedMek.class);
 
         // Target is out of range.
-        when(mockPrincess.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(5);
+        when(mockCaspar.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(5);
         expected = new ToHitData(FireControl.TH_RNG_TOO_FAR);
         assertToHitDataEquals(expected,
               testFireControl.guessToHitModifierHelperForAnyAttack(mockShooter,

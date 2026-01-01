@@ -32,6 +32,10 @@
  */
 package megamek.client.bot.caspar;
 
+
+
+import megamek.client.bot.princess.RankedPath;
+import megamek.client.bot.princess.CardinalEdge;
 import java.util.List;
 import java.util.TreeSet;
 

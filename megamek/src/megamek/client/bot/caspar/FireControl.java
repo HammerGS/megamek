@@ -33,6 +33,8 @@
  */
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.IHonorUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;

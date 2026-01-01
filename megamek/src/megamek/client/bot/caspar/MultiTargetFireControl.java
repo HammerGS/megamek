@@ -33,6 +33,8 @@
 
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.IHonorUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -30,13 +30,15 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
+
+import megamek.client.bot.princess.CardinalEdge;
 
 /**
  * @author Deric "Netzilla" Page (deric dot page at usa dot net)
  * @since 8/31/13 1:10 PM
  */
-class BehaviorSettingsTestConstants {
+class CasparSettingsTestConstants {
     static final String GOOD_BEHAVIOR_NAME = "DEFAULT";
     static final CardinalEdge GOOD_HOME_EDGE = CardinalEdge.NORTH;
     static final CardinalEdge GOOD_DESTINATION_EDGE = CardinalEdge.NORTH;

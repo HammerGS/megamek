@@ -33,6 +33,8 @@
  */
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.CardinalEdge;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;

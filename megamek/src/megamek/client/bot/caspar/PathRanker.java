@@ -33,6 +33,10 @@
  */
 package megamek.client.bot.caspar;
 
+
+
+import megamek.client.bot.princess.RankedPath;
+import megamek.client.bot.princess.CardinalEdge;
 import static megamek.client.ui.SharedUtility.predictLeapDamage;
 import static megamek.client.ui.SharedUtility.predictLeapFallDamage;
 

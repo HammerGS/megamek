@@ -31,7 +31,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,9 +53,13 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.*;
 
-import megamek.client.bot.princess.FireControl.FireControlType;
-import megamek.client.bot.princess.UnitBehavior.BehaviorType;
-import megamek.client.bot.princess.geometry.HexLine;
+import megamek.client.bot.caspar.FireControl.FireControlType;
+import megamek.client.bot.caspar.UnitBehavior.BehaviorType;
+import megamek.client.bot.caspar.geometry.HexLine;
+import megamek.client.bot.princess.BehaviorSettings;
+import megamek.client.bot.princess.CardinalEdge;
+import megamek.client.bot.princess.IHonorUtil;
+import megamek.client.bot.princess.RankedPath;
 import megamek.codeUtilities.StringUtility;
 import megamek.common.Hex;
 import megamek.common.battleArmor.BattleArmor;
@@ -88,7 +92,7 @@ class BasicPathRankerTest {
 
     private final double TOLERANCE = 0.01;
 
-    private Princess mockPrincess;
+    private Caspar mockCaspar;
     private FireControl mockFireControl;
 
     @BeforeEach
@@ -100,7 +104,7 @@ class BasicPathRankerTest {
             ArmorType.initializeTypes();
         }
 
-        final BehaviorSettings mockBehavior = mock(BehaviorSettings.class);
+        final CasparSettings mockBehavior = mock(CasparSettings.class);
         when(mockBehavior.getFallShameValue()).thenReturn(BehaviorSettings.FALL_SHAME_VALUES[5]);
         when(mockBehavior.getBraveryValue()).thenReturn(BehaviorSettings.BRAVERY[5]);
         when(mockBehavior.getHyperAggressionValue()).thenReturn(BehaviorSettings.HYPER_AGGRESSION_VALUES[5]);
@@ -127,18 +131,18 @@ class BasicPathRankerTest {
 
         final UnitBehavior mockBehaviorTracker = mock(UnitBehavior.class);
         when(mockBehaviorTracker.getBehaviorType(any(Entity.class),
-              any(Princess.class))).thenReturn(BehaviorType.Engaged);
+              any(Caspar.class))).thenReturn(BehaviorType.Engaged);
 
-        mockPrincess = mock(Princess.class);
-        when(mockPrincess.getBehaviorSettings()).thenReturn(mockBehavior);
-        when(mockPrincess.getFireControl(FireControlType.Basic)).thenReturn(mockFireControl);
-        when(mockPrincess.getFireControl(any(Entity.class))).thenReturn(mockFireControl);
-        when(mockPrincess.getHomeEdge(any(Entity.class))).thenReturn(CardinalEdge.NORTH);
-        when(mockPrincess.getHonorUtil()).thenReturn(mockHonorUtil);
-        when(mockPrincess.getFireControlState()).thenReturn(mockFireControlState);
-        when(mockPrincess.getPathRankerState()).thenReturn(mockPathRankerState);
-        when(mockPrincess.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(21);
-        when(mockPrincess.getUnitBehaviorTracker()).thenReturn(mockBehaviorTracker);
+        mockCaspar = mock(Caspar.class);
+        when(mockCaspar.getCasparSettings()).thenReturn(mockBehavior);
+        when(mockCaspar.getFireControl(FireControlType.Basic)).thenReturn(mockFireControl);
+        when(mockCaspar.getFireControl(any(Entity.class))).thenReturn(mockFireControl);
+        when(mockCaspar.getHomeEdge(any(Entity.class))).thenReturn(CardinalEdge.NORTH);
+        when(mockCaspar.getHonorUtil()).thenReturn(mockHonorUtil);
+        when(mockCaspar.getFireControlState()).thenReturn(mockFireControlState);
+        when(mockCaspar.getPathRankerState()).thenReturn(mockPathRankerState);
+        when(mockCaspar.getMaxWeaponRange(any(Entity.class), anyBoolean())).thenReturn(21);
+        when(mockCaspar.getUnitBehaviorTracker()).thenReturn(mockBehaviorTracker);
     }
 
     private void assertRankedPathEquals(final RankedPath expected, final RankedPath actual) {
@@ -175,7 +179,7 @@ class BasicPathRankerTest {
         final TargetRoll mockTargetRollTwo = MockGenerators.mockTargetRoll(5);
         final List<TargetRoll> testRollList = List.of(mockTargetRoll, mockTargetRollTwo);
 
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         doReturn(testRollList).when(testRanker).getPSRList(eq(mockPath));
 
         double actual = testRanker.getMovePathSuccessProbability(mockPath);
@@ -194,7 +198,7 @@ class BasicPathRankerTest {
         final TargetRoll mockTargetRollTwo = MockGenerators.mockTargetRoll(5);
         final List<TargetRoll> testRollList = List.of(mockTargetRoll, mockTargetRollTwo);
 
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         doReturn(testRollList).when(testRanker).getPSRList(eq(mockPath));
 
         double actual = testRanker.getMovePathSuccessProbability(mockPath);
@@ -203,8 +207,8 @@ class BasicPathRankerTest {
 
     @Test
     void testEvaluateUnmovedAeroEnemy() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(mockPrincess).when(testRanker).getOwner();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(mockCaspar).when(testRanker).getOwner();
 
         final Coords testCoords = new Coords(10, 10);
         final Entity mockMyUnit = MockGenerators.generateMockBipedMek(0, 0);
@@ -226,8 +230,8 @@ class BasicPathRankerTest {
 
     @Test
     void testEvaluateUnmovedEnemyInLOSAndUnableToKick() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(mockPrincess).when(testRanker).getOwner();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(mockCaspar).when(testRanker).getOwner();
 
         final Coords testCoords = new Coords(10, 10);
         final Entity mockMyUnit = MockGenerators.generateMockBipedMek(0, 0);
@@ -260,8 +264,8 @@ class BasicPathRankerTest {
 
     @Test
     void testEvaluateUnmovedEnemyNotInLOS() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(mockPrincess).when(testRanker).getOwner();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(mockCaspar).when(testRanker).getOwner();
 
         final Coords testCoords = new Coords(10, 10);
         final Entity mockMyUnit = MockGenerators.generateMockBipedMek(0, 0);
@@ -292,8 +296,8 @@ class BasicPathRankerTest {
 
     @Test
     void testEvaluateUnmovedEnemyNotInLOSAndAbleToKick() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(mockPrincess).when(testRanker).getOwner();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(mockCaspar).when(testRanker).getOwner();
 
         final Coords testCoords = new Coords(10, 10);
         final Entity mockMyUnit = MockGenerators.generateMockBipedMek(0, 0);
@@ -326,8 +330,8 @@ class BasicPathRankerTest {
 
     @Test
     void testEvaluateMovedEnemy() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(mockPrincess).when(testRanker).getOwner();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(mockCaspar).when(testRanker).getOwner();
 
         final MovePath mockPath = mock(MovePath.class);
         final Entity mockMyUnit = mock(BipedMek.class);
@@ -524,7 +528,7 @@ class BasicPathRankerTest {
 
     @Test
     void testRankPath() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         doReturn(1.0).when(testRanker).getMovePathSuccessProbability(any(MovePath.class));
         doReturn(20).when(testRanker).distanceToHomeEdge(any(Coords.class), anyInt(), any(CardinalEdge.class),
               any(Game.class));
@@ -533,7 +537,7 @@ class BasicPathRankerTest {
 
         final Entity mockMover = mock(BipedMek.class);
         when(mockMover.isClan()).thenReturn(false);
-        when(mockPrincess.wantsToFallBack(eq(mockMover))).thenReturn(false);
+        when(mockCaspar.wantsToFallBack(eq(mockMover))).thenReturn(false);
 
         final Coords finalCoords = new Coords(0, 0);
 
@@ -575,7 +579,7 @@ class BasicPathRankerTest {
         when(mockGame.getOptions()).thenReturn(mockGameOptions);
         when(mockGame.getArtilleryAttacks()).thenReturn(Collections.emptyEnumeration());
         when(mockGame.getPlanetaryConditions()).thenReturn(mockPC);
-        when(mockPrincess.getGame()).thenReturn(mockGame);
+        when(mockCaspar.getGame()).thenReturn(mockGame);
         when(mockMover.getGame()).thenReturn(mockGame);
         when(mockGame.onTheSameBoard(any(Targetable.class), any(Targetable.class))).thenCallRealMethod();
 
@@ -909,7 +913,7 @@ class BasicPathRankerTest {
         // Reset fleeing settings
         doReturn(20).when(testRanker)
               .distanceToHomeEdge(nullable(Coords.class), anyInt(), any(CardinalEdge.class), any(Game.class));
-        when(mockPrincess.wantsToFallBack(eq(mockMover))).thenReturn(false);
+        when(mockCaspar.wantsToFallBack(eq(mockMover))).thenReturn(false);
         when(mockMover.isCrippled()).thenReturn(false);
 
         // TEST CASE 17: Change final facing (1 off from optimal)
@@ -1002,8 +1006,8 @@ class BasicPathRankerTest {
         final Game mockGame = mock(Game.class);
         when(mockGame.onTheSameBoard(any(Targetable.class), any(Targetable.class))).thenCallRealMethod();
 
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
-        doReturn(enemyList).when(mockPrincess).getEnemyEntities();
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
+        doReturn(enemyList).when(mockCaspar).getEnemyEntities();
 
         assertEquals(enemyMek, testRanker.findClosestEnemy(me, position, mockGame, false));
 
@@ -1122,7 +1126,7 @@ class BasicPathRankerTest {
     void testCalculateDamagePotential() {
         final Entity mockMe = generateMockEntity(10, 10);
 
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         doReturn(mockFireControl).when(testRanker).getFireControl(mockMe);
 
         final Board mockBoard = generateMockBoard();
@@ -1185,7 +1189,7 @@ class BasicPathRankerTest {
     void testCalculateMyDamagePotential() {
         final Entity mockMe = generateMockEntity(10, 10);
 
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         doReturn(mockFireControl).when(testRanker).getFireControl(mockMe);
 
         final Board mockBoard = generateMockBoard();
@@ -1359,7 +1363,7 @@ class BasicPathRankerTest {
 
     @Test
     void testCheckPathForHazards() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
         final Coords testCoordsThree = testCoords.get(2);
@@ -1548,7 +1552,7 @@ class BasicPathRankerTest {
 
     @Test
     void testMagmaHazard() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
         final Coords testCoordsThree = testCoords.get(2);
@@ -1692,7 +1696,7 @@ class BasicPathRankerTest {
 
         @BeforeEach
         void init() {
-            testRanker = spy(new BasicPathRanker(mockPrincess));
+            testRanker = spy(new BasicPathRanker(mockCaspar));
 
             testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
             testCoordsThree = testCoords.get(2);
@@ -2130,7 +2134,7 @@ class BasicPathRankerTest {
 
     @Test
     void testSwampHazard() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
         final Coords testCoordsThree = testCoords.get(2);
@@ -2210,7 +2214,7 @@ class BasicPathRankerTest {
 
     @Test
     void testMudHazard() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
         final Coords testCoordsThree = testCoords.get(2);
@@ -2267,7 +2271,7 @@ class BasicPathRankerTest {
 
     @Test
     void testBlackIceHazard() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         testRanker.blackIce = 1;
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");
@@ -2299,7 +2303,7 @@ class BasicPathRankerTest {
 
     @Test
     void testPossibleBlackIceHazard() {
-        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockPrincess));
+        final BasicPathRanker testRanker = spy(new BasicPathRanker(mockCaspar));
         testRanker.blackIce = 1;
 
         final List<Coords> testCoords = setupCoords("10,7", "10,8", "10,9", "10,10");

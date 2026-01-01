@@ -31,7 +31,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -47,6 +47,8 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
+import megamek.client.bot.princess.CardinalEdge;
+import megamek.client.bot.princess.PrincessException;
 import megamek.utilities.xml.MMXMLUtility;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -58,20 +60,20 @@ import org.xml.sax.SAXException;
  * @author Deric "Netzilla" Page (deric dot page at usa dot net)
  * @since 8/19/13 6:30 AM
  */
-class BehaviorSettingsTest {
+class CasparSettingsTest {
 
     @Test
     void testSetDescription() throws PrincessException {
-        BehaviorSettings behaviorSettings = new BehaviorSettings();
+        CasparSettings CasparSettings = new CasparSettings();
 
         // Test a normal description.
         String description = "Test behavior";
-        behaviorSettings.setDescription(description);
+        CasparSettings.setDescription(description);
         assertTrue(true);
 
         // Test a null description.
         try {
-            behaviorSettings.setDescription(null);
+            CasparSettings.setDescription(null);
             fail("Should have thrown an error!");
         } catch (PrincessException e) {
             assertTrue(true);
@@ -80,7 +82,7 @@ class BehaviorSettingsTest {
         // Test an empty description.
         description = "";
         try {
-            behaviorSettings.setDescription(description);
+            CasparSettings.setDescription(description);
             fail("Should have thrown an error!");
         } catch (PrincessException e) {
             assertTrue(true);
@@ -89,113 +91,113 @@ class BehaviorSettingsTest {
 
     @Test
     void testStrategicBuildingTargets() {
-        BehaviorSettings behaviorSettings = new BehaviorSettings();
+        CasparSettings CasparSettings = new CasparSettings();
         final String goodHexTarget = "1234";
         final String goodHexTarget2 = "4567";
         Set<String> expectedTargets = new HashSet<>(2);
         expectedTargets.add(goodHexTarget);
 
         // Test adding a normal hex target.
-        behaviorSettings.addStrategicTarget(goodHexTarget);
-        Set<String> actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.addStrategicTarget(goodHexTarget);
+        Set<String> actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a duplicate target.
-        behaviorSettings.addStrategicTarget(goodHexTarget);
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.addStrategicTarget(goodHexTarget);
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a second target.
         expectedTargets.add(goodHexTarget2);
-        behaviorSettings.addStrategicTarget(goodHexTarget2);
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.addStrategicTarget(goodHexTarget2);
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a null target.
-        behaviorSettings.addStrategicTarget(null);
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.addStrategicTarget(null);
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding an empty target.
-        behaviorSettings.addStrategicTarget("");
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.addStrategicTarget("");
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a target.
         expectedTargets.remove(goodHexTarget2);
-        behaviorSettings.removeStrategicTarget(goodHexTarget2);
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.removeStrategicTarget(goodHexTarget2);
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a null target
-        behaviorSettings.removeStrategicTarget(null);
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.removeStrategicTarget(null);
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing an empty target
-        behaviorSettings.removeStrategicTarget("");
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.removeStrategicTarget("");
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a target not on the list.
-        behaviorSettings.removeStrategicTarget("blah");
-        actualTargets = behaviorSettings.getStrategicBuildingTargets();
+        CasparSettings.removeStrategicTarget("blah");
+        actualTargets = CasparSettings.getStrategicBuildingTargets();
         assertEquals(expectedTargets, actualTargets);
     }
 
     @Test
     void testPreferredUnitTargets() {
-        BehaviorSettings behaviorSettings = new BehaviorSettings();
+        CasparSettings CasparSettings = new CasparSettings();
         final int goodUnitTarget = 1;
         final int goodUnitTarget2 = 4;
         Set<Integer> expectedTargets = new HashSet<>(2);
         expectedTargets.add(goodUnitTarget);
 
         // Test adding a normal hex target.
-        behaviorSettings.addPriorityUnit(goodUnitTarget);
-        Set<Integer> actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.addPriorityUnit(goodUnitTarget);
+        Set<Integer> actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a duplicate target.
-        behaviorSettings.addPriorityUnit(goodUnitTarget);
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.addPriorityUnit(goodUnitTarget);
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a second target.
         expectedTargets.add(goodUnitTarget2);
-        behaviorSettings.addPriorityUnit(goodUnitTarget2);
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.addPriorityUnit(goodUnitTarget2);
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding a null target.
-        behaviorSettings.addPriorityUnit(null);
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.addPriorityUnit(null);
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test adding an empty target.
-        behaviorSettings.addPriorityUnit("");
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.addPriorityUnit("");
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a target.
         expectedTargets.remove(goodUnitTarget2);
-        behaviorSettings.removePriorityUnit(goodUnitTarget2);
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.removePriorityUnit(goodUnitTarget2);
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a null target
-        behaviorSettings.removePriorityUnit(null);
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.removePriorityUnit(null);
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing an empty target
-        behaviorSettings.removePriorityUnit("");
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.removePriorityUnit("");
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
 
         // Test removing a target not on the list.
-        behaviorSettings.removePriorityUnit("blah");
-        actualTargets = behaviorSettings.getPriorityUnitTargets();
+        CasparSettings.removePriorityUnit("blah");
+        actualTargets = CasparSettings.getPriorityUnitTargets();
         assertEquals(expectedTargets, actualTargets);
     }
 
@@ -204,292 +206,292 @@ class BehaviorSettingsTest {
         DocumentBuilder documentBuilder = MMXMLUtility.newSafeDocumentBuilder();
 
         // Test loading good behavior settings.
-        Reader reader = new CharArrayReader(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_XML.toCharArray());
+        Reader reader = new CharArrayReader(CasparSettingsTestConstants.GOOD_BEHAVIOR_XML.toCharArray());
         Document testDocument = documentBuilder.parse(new InputSource(reader));
         Element testBehaviorElement = testDocument.getDocumentElement();
         Set<String> expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         Set<Integer> expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        BehaviorSettings behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading good behavior settings w/out any strategic targets.
-        reader = new CharArrayReader(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_XML_NO_TARGETS.toCharArray());
+        reader = new CharArrayReader(CasparSettingsTestConstants.GOOD_BEHAVIOR_XML_NO_TARGETS.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(0);
         expectedUnits = new HashSet<>(0);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ a NULL name.
-        reader = new CharArrayReader(BehaviorSettingsTestConstants.BEHAVIOR_XML_NULL_NAME.toCharArray());
+        reader = new CharArrayReader(CasparSettingsTestConstants.BEHAVIOR_XML_NULL_NAME.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals("null", behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals("null", CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ an empty name.
-        reader = new CharArrayReader(BehaviorSettingsTestConstants.BEHAVIOR_XML_EMPTY_NAME.toCharArray());
+        reader = new CharArrayReader(CasparSettingsTestConstants.BEHAVIOR_XML_EMPTY_NAME.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
         try {
-            behaviorSettings.fromXml(testBehaviorElement);
+            CasparSettings.fromXml(testBehaviorElement);
             fail("Should have thrown an error!");
         } catch (PrincessException e) {
             assertTrue(true);
         }
 
         // Test loading behavior settings w/ a NULL home edge.
-        reader = new CharArrayReader(BehaviorSettingsTestConstants.BEHAVIOR_XML_NULL_HOME_EDGE.toCharArray());
+        reader = new CharArrayReader(CasparSettingsTestConstants.BEHAVIOR_XML_NULL_HOME_EDGE.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertSame(CardinalEdge.NONE, behaviorSettings.getRetreatEdge());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertSame(CardinalEdge.NONE, CasparSettings.getRetreatEdge());
 
         // Test loading behavior settings w/ a NULL forced withdrawal.
         reader = new CharArrayReader(
-              BehaviorSettingsTestConstants.BEHAVIOR_XML_NULL_FORCED_WITHDRAWAL.toCharArray());
+              CasparSettingsTestConstants.BEHAVIOR_XML_NULL_FORCED_WITHDRAWAL.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertFalse(behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertFalse(CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ a NULL auto-flee.
-        reader = new CharArrayReader(BehaviorSettingsTestConstants.BEHAVIOR_XML_NULL_AUTO_FLEE.toCharArray());
+        reader = new CharArrayReader(CasparSettingsTestConstants.BEHAVIOR_XML_NULL_AUTO_FLEE.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertFalse(behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertFalse(CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ a Fall Shame > 10.
         // All other indexes use the same method for validation.
         reader = new CharArrayReader(
-              BehaviorSettingsTestConstants.BEHAVIOR_XML_TOO_BIG_FALL_SHAME.toCharArray());
+              CasparSettingsTestConstants.BEHAVIOR_XML_TOO_BIG_FALL_SHAME.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(10, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(10, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ a Fall Shame < 0.
         // All other indexes use the same method for validation.
         reader = new CharArrayReader(
-              BehaviorSettingsTestConstants.BEHAVIOR_XML_TOO_SMALL_FALL_SHAME.toCharArray());
+              CasparSettingsTestConstants.BEHAVIOR_XML_TOO_SMALL_FALL_SHAME.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(2);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_1);
-        expectedTargets.add(BehaviorSettingsTestConstants.STRATEGIC_TARGET_2);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_1);
+        expectedTargets.add(CasparSettingsTestConstants.STRATEGIC_TARGET_2);
         expectedUnits = new HashSet<>(1);
-        expectedUnits.add(BehaviorSettingsTestConstants.PRIORITY_TARGET);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(0, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        expectedUnits.add(CasparSettingsTestConstants.PRIORITY_TARGET);
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(0, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ a NULL strategic target.
         reader = new CharArrayReader(
-              BehaviorSettingsTestConstants.BEHAVIOR_XML_NULL_STRATEGIC_TARGET.toCharArray());
+              CasparSettingsTestConstants.BEHAVIOR_XML_NULL_STRATEGIC_TARGET.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(1);
         expectedTargets.add("null");
         expectedUnits = new HashSet<>(0);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
 
         // Test loading behavior settings w/ an Empty strategic target.
         reader = new CharArrayReader(
-              BehaviorSettingsTestConstants.BEHAVIOR_XML_EMPTY_STRATEGIC_TARGET.toCharArray());
+              CasparSettingsTestConstants.BEHAVIOR_XML_EMPTY_STRATEGIC_TARGET.toCharArray());
         testDocument = documentBuilder.parse(new InputSource(reader));
         testBehaviorElement = testDocument.getDocumentElement();
         expectedTargets = new HashSet<>(0);
         expectedUnits = new HashSet<>(0);
-        behaviorSettings = new BehaviorSettings();
-        behaviorSettings.fromXml(testBehaviorElement);
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BEHAVIOR_NAME, behaviorSettings.getDescription());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HOME_EDGE, behaviorSettings.getRetreatEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_DESTINATION_EDGE,
-              behaviorSettings.getDestinationEdge());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
-              behaviorSettings.isForcedWithdrawal());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_AUTO_FLEE, behaviorSettings.shouldAutoFlee());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_FALL_SHAME_INDEX, behaviorSettings.getFallShameIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
-              behaviorSettings.getHyperAggressionIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
-              behaviorSettings.getSelfPreservationIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
-              behaviorSettings.getHerdMentalityIndex());
-        assertEquals(BehaviorSettingsTestConstants.GOOD_BRAVERY_INDEX, behaviorSettings.getBraveryIndex());
-        assertEquals(expectedTargets, behaviorSettings.getStrategicBuildingTargets());
-        assertEquals(expectedUnits, behaviorSettings.getPriorityUnitTargets());
+        CasparSettings = new CasparSettings();
+        CasparSettings.fromXml(testBehaviorElement);
+        assertEquals(CasparSettingsTestConstants.GOOD_BEHAVIOR_NAME, CasparSettings.getDescription());
+        assertEquals(CasparSettingsTestConstants.GOOD_HOME_EDGE, CasparSettings.getRetreatEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_DESTINATION_EDGE,
+              CasparSettings.getDestinationEdge());
+        assertEquals(CasparSettingsTestConstants.GOOD_FORCED_WITHDRAWAL,
+              CasparSettings.isForcedWithdrawal());
+        assertEquals(CasparSettingsTestConstants.GOOD_AUTO_FLEE, CasparSettings.shouldAutoFlee());
+        assertEquals(CasparSettingsTestConstants.GOOD_FALL_SHAME_INDEX, CasparSettings.getFallShameIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HYPER_AGGRESSION_INDEX,
+              CasparSettings.getHyperAggressionIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_SELF_PRESERVATION_INDEX,
+              CasparSettings.getSelfPreservationIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_HERD_MENTALITY_INDEX,
+              CasparSettings.getHerdMentalityIndex());
+        assertEquals(CasparSettingsTestConstants.GOOD_BRAVERY_INDEX, CasparSettings.getBraveryIndex());
+        assertEquals(expectedTargets, CasparSettings.getStrategicBuildingTargets());
+        assertEquals(expectedUnits, CasparSettings.getPriorityUnitTargets());
     }
 }

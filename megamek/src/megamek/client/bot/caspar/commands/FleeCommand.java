@@ -32,10 +32,12 @@
  */
 package megamek.client.bot.caspar.commands;
 
+
+import megamek.client.bot.princess.CardinalEdge;
 import java.util.List;
 
 import megamek.client.bot.Messages;
-import megamek.client.bot.caspar.CardinalEdge;
+import megamek.client.bot.princess.CardinalEdge;
 import megamek.client.bot.caspar.Caspar;
 import megamek.server.commands.arguments.Argument;
 import megamek.server.commands.arguments.Arguments;

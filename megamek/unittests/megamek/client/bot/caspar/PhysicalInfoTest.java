@@ -30,7 +30,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,10 +66,10 @@ class PhysicalInfoTest {
 
     @Test
     void testInitDamage() {
-        Princess mockPrincess = mock(Princess.class);
+        Caspar mockCaspar = mock(Caspar.class);
 
         FireControl mockFireControl = mock(FireControl.class);
-        when(mockPrincess.getFireControl(any(Entity.class))).thenReturn(mockFireControl);
+        when(mockCaspar.getFireControl(any(Entity.class))).thenReturn(mockFireControl);
 
         ToHitData mockToHit = mock(ToHitData.class);
         when(mockFireControl.guessToHitModifierPhysical(any(Entity.class), any(EntityState.class),
@@ -94,7 +94,7 @@ class PhysicalInfoTest {
 
         Game mockGame = mock(Game.class);
 
-        PhysicalInfo testPhysicalInfo = spy(new PhysicalInfo(mockPrincess));
+        PhysicalInfo testPhysicalInfo = spy(new PhysicalInfo(mockCaspar));
         testPhysicalInfo.setShooter(mockShooter);
         testPhysicalInfo.setTarget(mockTarget);
         doNothing().when(testPhysicalInfo).setDamageDirection(any(EntityState.class), nullable(Coords.class));

@@ -56,6 +56,15 @@ public enum PacketCommand {
     /** A Server to Client packet instructing a Princess Client to replace its settings. */
     CHANGE_PRINCESS_SETTINGS,
 
+    /**
+     * A packet replacing a Client's knowledge of all CASPAR bot settings (S -> C) or updating the Server on a single bot's
+     * settings (C -> S). Does not invoke any actual changes to bots.
+     */
+    CASPAR_SETTINGS,
+
+    /** A Server to Client packet instructing a CASPAR Client to replace its settings. */
+    CHANGE_CASPAR_SETTINGS,
+
     /** A packet setting a Client's ready status (S -> C) or updating the Server on the Client's status (C -> S). */
     PLAYER_READY,
 

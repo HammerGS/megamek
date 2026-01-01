@@ -71,7 +71,8 @@ import javax.swing.event.ListSelectionListener;
 import megamek.client.Client;
 import megamek.client.bot.caspar.CasparSettings;
 import megamek.client.bot.caspar.CasparSettingsFactory;
-import megamek.client.bot.caspar.CardinalEdge;
+import megamek.client.bot.princess.CardinalEdge;
+import megamek.client.bot.princess.PrincessException;
 import megamek.client.bot.caspar.Caspar;
 import megamek.client.bot.caspar.CasparException;
 import megamek.client.generator.RandomCallsignGenerator;
@@ -771,7 +772,7 @@ public class CasparConfigDialog extends AbstractButtonDialog
         CasparSettings newBehavior = new CasparSettings();
         try {
             newBehavior.setDescription(name);
-        } catch (CasparException e1) {
+        } catch (PrincessException e1) {
             return;
         }
         newBehavior.setFallShameIndex(fallShameSlidebar.getValue());
@@ -789,13 +790,13 @@ public class CasparConfigDialog extends AbstractButtonDialog
         newBehavior.setIgnoreDamageOutput(ignoreDamageOutputCheck.isSelected());
 
         casparSettingsFactory.addBehavior(newBehavior);
-        casparSettingsFactory.saveBehaviorSettings(false);
+        casparSettingsFactory.saveCasparSettings(false);
     }
 
     /** Removes the given Behavior Preset. */
     private void removePreset(String name) {
         casparSettingsFactory.removeBehavior(name);
-        casparSettingsFactory.saveBehaviorSettings(false);
+        casparSettingsFactory.saveCasparSettings(false);
         updatePresets();
     }
 
@@ -804,7 +805,7 @@ public class CasparConfigDialog extends AbstractButtonDialog
         var bc = client.getBots().get(botName);
         if (bc instanceof Caspar) {
             try {
-                casparBehavior = ((Caspar) bc).getCasparSettings().getCopy();
+                casparBehavior = ((Caspar) bc).getCasparSettings().getCasparCopy();
                 updateDialogFields();
             } catch (Exception e) {
                 logger.error(e, "copyFromOtherBot");
@@ -816,7 +817,7 @@ public class CasparConfigDialog extends AbstractButtonDialog
         CasparSettings tempBehavior = new CasparSettings();
         try {
             tempBehavior.setDescription(casparBehavior.getDescription());
-        } catch (CasparException ignore) {
+        } catch (PrincessException ignore) {
             // do nothing
         }
         tempBehavior.setFallShameIndex(fallShameSlidebar.getValue());

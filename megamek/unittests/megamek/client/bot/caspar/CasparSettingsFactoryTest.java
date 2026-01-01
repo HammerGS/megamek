@@ -31,7 +31,7 @@
  * <https://www.xbox.com/en-US/developers/rules> and it is not endorsed by or
  * affiliated with Microsoft.
  */
-package megamek.client.bot.princess;
+package megamek.client.bot.caspar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,14 +54,14 @@ import org.xml.sax.InputSource;
  * @author Deric "Netzilla" Page (deric dot page at usa dot net)
  * @since 9/6/13 10:11 PM
  */
-class BehaviorSettingsFactoryTest {
+class CasparSettingsFactoryTest {
 
-    private final BehaviorSettingsFactory testFactory = BehaviorSettingsFactory.getInstance();
+    private final CasparSettingsFactory testFactory = CasparSettingsFactory.getInstance();
 
     private static Document buildTestDocument() {
         try {
             DocumentBuilder documentBuilder = MMXMLUtility.newSafeDocumentBuilder();
-            File file = new File("testresources/megamek/client/bot/behaviorSettings.xml");
+            File file = new File("testresources/megamek/client/bot/CasparSettings.xml");
             try (Reader reader = new FileReader(file)) {
                 return documentBuilder.parse(new InputSource(reader));
             }
@@ -76,29 +76,29 @@ class BehaviorSettingsFactoryTest {
     }
 
     @Test
-    void testLoadBehaviorSettingsWithNoSaveFile() {
+    void testLoadCasparSettingsWithNoSaveFile() {
         // Test loading a null behavior settings file.
-        assertFalse(testFactory.loadBehaviorSettings(null));
-        var expectedBehaviors = Set.of(BehaviorSettingsFactory.BERSERK_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.CONVOY_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.COWARDLY_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.ESCAPE_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.PIRATE_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.RUTHLESS_BEHAVIOR_DESCRIPTION);
+        assertFalse(testFactory.loadCasparSettings(null));
+        var expectedBehaviors = Set.of(CasparSettingsFactory.BERSERK_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.CONVOY_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.COWARDLY_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.ESCAPE_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.PIRATE_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.RUTHLESS_BEHAVIOR_DESCRIPTION);
         assertEquals(expectedBehaviors, Sets.newSet(testFactory.getBehaviorNames()));
     }
 
     @Test
-    void testLoadBehaviorSettingsWithTestDocument() {
-        assertTrue(testFactory.loadBehaviorSettings(buildTestDocument()));
-        var expectedBehaviors = Set.of(BehaviorSettingsFactory.BERSERK_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.COWARDLY_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.ESCAPE_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.CONVOY_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.PIRATE_BEHAVIOR_DESCRIPTION,
-              BehaviorSettingsFactory.RUTHLESS_BEHAVIOR_DESCRIPTION);
+    void testLoadCasparSettingsWithTestDocument() {
+        assertTrue(testFactory.loadCasparSettings(buildTestDocument()));
+        var expectedBehaviors = Set.of(CasparSettingsFactory.BERSERK_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.COWARDLY_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.ESCAPE_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.CONVOY_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.PIRATE_BEHAVIOR_DESCRIPTION,
+              CasparSettingsFactory.RUTHLESS_BEHAVIOR_DESCRIPTION);
         assertTrue(Sets.newSet(testFactory.getBehaviorNames()).containsAll(expectedBehaviors));
     }
 }

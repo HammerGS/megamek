@@ -32,6 +32,8 @@
  */
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.CardinalEdge;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;

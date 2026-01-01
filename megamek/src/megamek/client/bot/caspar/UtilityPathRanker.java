@@ -33,6 +33,8 @@
 
 package megamek.client.bot.caspar;
 
+
+import megamek.client.bot.princess.RankedPath;
 import static megamek.client.bot.caspar.EnemyTracker.hitChance;
 import static megamek.codeUtilities.MathUtility.clamp01;
 import static megamek.codeUtilities.MathUtility.clampUlp1;

@@ -70,7 +70,7 @@ public class RankedPath implements Comparable<RankedPath> {
         return expectedDamage;
     }
 
-    void setExpectedDamage(double damage) {
+    public void setExpectedDamage(double damage) {
         expectedDamage = damage;
     }
 
