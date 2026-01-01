@@ -36,6 +36,8 @@ package megamek.common.preference;
 
 import static megamek.client.bot.princess.BehaviorSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION;
 
+import megamek.client.bot.caspar.CasparSettingsFactory;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -101,6 +103,8 @@ public class ClientPreferences extends PreferenceStoreProxy {
     public static final String NAG_ASK_FOR_VICTORY_LIST = "AskForVictoryList";
     public static final String SHOW_AUTO_RESOLVE_PANEL = "ShowAutoResolvePanel";
     public static final String FAVORITE_PRINCESS_BEHAVIOR_SETTING = "FavoritePrincessBehaviorSetting";
+    public static final String FAVORITE_CASPAR_BEHAVIOR_SETTING = "FavoriteCasparBehaviorSetting";
+    public static final String DEFAULT_BOT_TYPE = "DefaultBotType";
     public static final String LAST_SCENARIO = "LastScenario";
 
     /**
@@ -155,6 +159,8 @@ public class ClientPreferences extends PreferenceStoreProxy {
         store.setDefault(SHOW_AUTO_RESOLVE_PANEL, false);
         store.setDefault(STAMP_FILENAMES, false);
         store.setDefault(FAVORITE_PRINCESS_BEHAVIOR_SETTING, DEFAULT_BEHAVIOR_DESCRIPTION);
+        store.setDefault(FAVORITE_CASPAR_BEHAVIOR_SETTING, CasparSettingsFactory.DEFAULT_BEHAVIOR_DESCRIPTION);
+        store.setDefault(DEFAULT_BOT_TYPE, "Princess");
         store.setDefault(LAST_SCENARIO, "");
 
         setLocale(store.getString(LOCALE));
@@ -549,6 +555,22 @@ public class ClientPreferences extends PreferenceStoreProxy {
 
     public void setFavoritePrincessBehaviorSetting(String name) {
         store.setValue(FAVORITE_PRINCESS_BEHAVIOR_SETTING, name);
+    }
+
+    public String getFavoriteCasparBehaviorSetting() {
+        return store.getString(FAVORITE_CASPAR_BEHAVIOR_SETTING);
+    }
+
+    public void setFavoriteCasparBehaviorSetting(String name) {
+        store.setValue(FAVORITE_CASPAR_BEHAVIOR_SETTING, name);
+    }
+
+    public String getDefaultBotType() {
+        return store.getString(DEFAULT_BOT_TYPE);
+    }
+
+    public void setDefaultBotType(String botType) {
+        store.setValue(DEFAULT_BOT_TYPE, botType);
     }
 
     public void setLastScenario(String scenario) {

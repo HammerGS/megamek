@@ -44,6 +44,9 @@ import javax.swing.JFrame;
 import megamek.client.AbstractClient;
 import megamek.client.Client;
 import megamek.client.bot.BotClient;
+import megamek.client.bot.caspar.Caspar;
+import megamek.client.bot.caspar.CasparSettings;
+import megamek.client.bot.caspar.CasparSettingsFactory;
 import megamek.client.bot.princess.BehaviorSettings;
 import megamek.client.bot.princess.BehaviorSettingsFactory;
 import megamek.client.bot.princess.Princess;
@@ -63,18 +66,18 @@ public class AddBotUtil {
     public static final String COMMAND = "replacePlayer";
     public static final String USAGE = """
           Replaces a player who is a ghost with a bot.\
-          
-          Usage /replacePlayer <-b:Princess> <-c:Config> <-v:Verbosity> \
+
+          Usage /replacePlayer <-b:Princess|CASPAR> <-c:Config> <-v:Verbosity> \
           <-p:>name.\
-          
-            <-b> Specifies use if Princess. \
-          
-            <-c> Specifies a saved configuration to be used by Princess.  If left out\
+
+            <-b> Specifies bot type: Princess or CASPAR. \
+
+            <-c> Specifies a saved configuration to be used by the bot. If left out\
            DEFAULT will be used.\
-          
-            <-v> Specifies the verbosity level for Princess \
+
+            <-v> Specifies the verbosity level for the bot \
           (DEBUG/INFO/WARNING/ERROR).\
-          
+
             <-p> Specifies the player name.  The '-p' is only required when the '-c' \
           or '-v' parameters are also used.""";
 
@@ -175,6 +178,20 @@ public class AddBotUtil {
             } else {
                 ((Princess) botClient).setBehaviorSettings(BehaviorSettingsFactory.getInstance().DEFAULT_BEHAVIOR);
             }
+        } else if ("CASPAR".equalsIgnoreCase(botName.toString())) {
+            botClient = makeNewCasparClient(target, host, port);
+            if (!StringUtility.isNullOrBlank(configName)) {
+                final CasparSettings settings = CasparSettingsFactory.getInstance()
+                      .getBehavior(configName.toString());
+                if (null != settings) {
+                    ((Caspar) botClient).setCasparSettings(settings);
+                } else {
+                    results.add("Unrecognized CASPAR Setting: '" + configName + "'.  Using DEFAULT.");
+                    ((Caspar) botClient).setCasparSettings(CasparSettingsFactory.getInstance().DEFAULT_BEHAVIOR);
+                }
+            } else {
+                ((Caspar) botClient).setCasparSettings(CasparSettingsFactory.getInstance().DEFAULT_BEHAVIOR);
+            }
         } else {
             results.add("Unrecognized bot: '" + botName + "'.  Defaulting to Princess.");
             botName = new StringBuilder("Princess");
@@ -196,9 +213,13 @@ public class AddBotUtil {
 
         final StringBuilder result = new StringBuilder(botName);
         result.append(" has replaced ").append(target.getName()).append(".");
-        if (botClient instanceof Princess) {
+        if (botClient instanceof Princess princess) {
             result.append("  Config: ")
-                  .append(((Princess) botClient).getBehaviorSettings().getDescription())
+                  .append(princess.getBehaviorSettings().getDescription())
+                  .append(".");
+        } else if (botClient instanceof Caspar caspar) {
+            result.append("  Config: ")
+                  .append(caspar.getCasparSettings().getDescription())
                   .append(".");
         }
         results.add(result.toString());
@@ -324,5 +345,11 @@ public class AddBotUtil {
         Princess princess = new Princess(target.getName(), host, port);
         princess.startPrecognition();
         return princess;
+    }
+
+    BotClient makeNewCasparClient(final Player target, final String host, final int port) {
+        Caspar caspar = new Caspar(target.getName(), host, port);
+        caspar.startPrecognition();
+        return caspar;
     }
 }

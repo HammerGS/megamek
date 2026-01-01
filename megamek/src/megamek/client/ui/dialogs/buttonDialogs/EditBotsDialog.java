@@ -54,6 +54,9 @@ import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 
 import megamek.client.AbstractClient;
+import megamek.client.bot.caspar.Caspar;
+import megamek.client.bot.caspar.CasparException;
+import megamek.client.bot.caspar.CasparSettings;
 import megamek.client.bot.princess.BehaviorSettings;
 import megamek.client.bot.princess.Princess;
 import megamek.client.bot.princess.PrincessException;
@@ -69,6 +72,7 @@ public class EditBotsDialog extends AbstractButtonDialog {
 
     // replace ghost combo box choices
     private static final int REPLACE_WITH_PRINCESS_INDEX = 1;
+    private static final int REPLACE_WITH_CASPAR_INDEX = 2;
 
     // edit existing local bot combo box choices
     private static final int KICK_INDEX = 1;
@@ -94,8 +98,10 @@ public class EditBotsDialog extends AbstractButtonDialog {
     /** Maps a ghost player to the config button for the bot settings */
     private final Map<Player, JButton> configButtons = new HashMap<>();
 
-    /** Maps a ghost player to bot settings chosen for it */
+    /** Maps a ghost player to Princess bot settings chosen for it */
     private final Map<Player, BehaviorSettings> botConfigs = new HashMap<>();
+    /** Maps a ghost player to CASPAR bot settings chosen for it */
+    private final Map<Player, CasparSettings> casparConfigs = new HashMap<>();
     private final static String LOCAL = Messages.getString("EditBotsDialog.local");
     private final static String REMOTE = Messages.getString("EditBotsDialog.remote");
 
@@ -122,14 +128,18 @@ public class EditBotsDialog extends AbstractButtonDialog {
         ghostAndBotPlayers = game.getPlayersList().stream()
               .filter(client -> client.isGhost() || client.isBot())
               .sorted(Comparator.comparingInt(Player::getId)).collect(Collectors.toList());
-        ghostAndBotPlayers.forEach(player -> botConfigs.put(player, new BehaviorSettings()));
+        ghostAndBotPlayers.forEach(player -> {
+            botConfigs.put(player, new BehaviorSettings());
+            casparConfigs.put(player, new CasparSettings());
+        });
     }
 
     @Override
     protected Container createCenterPane() {
         Vector<String> ghostOptions = new Vector<>();
         ghostOptions.add(Messages.getString("EditBotsDialog.optionDoNotReplace"));
-        ghostOptions.add(Messages.getString("EditBotsDialog.optionReplace"));
+        ghostOptions.add(Messages.getString("EditBotsDialog.optionReplacePrincess"));
+        ghostOptions.add(Messages.getString("EditBotsDialog.optionReplaceCaspar"));
 
         Vector<String> localBotOptions = new Vector<>();
         localBotOptions.add(Messages.getString("EditBotsDialog.optionNone"));
@@ -210,13 +220,34 @@ public class EditBotsDialog extends AbstractButtonDialog {
 
                     gridPanel.add(configButton(player));
                     gridPanel.add(restoreButton(player, savedSettingsExist));
+                } else if (bot instanceof Caspar caspar) {
+                    gridPanel.add(new JLabel(LOCAL + " CASPAR"));
+                    try {
+                        // Copy to protect the current settings
+                        casparConfigs.put(player, caspar.getCasparSettings().getCopy());
+                    } catch (CasparException e) {
+                        logger.error(e, "");
+                        // fallback to default
+                    }
+
+                    var botChooser = new JComboBox<>(localBotOptions);
+                    localBotChoosers.put(player, botChooser);
+                    botChooser.setSelectedIndex(0);
+                    botChooser.addActionListener(e -> updateButtonStates());
+
+                    var cPanel = new JPanel();
+                    cPanel.add(botChooser);
+                    gridPanel.add(cPanel);
+
+                    gridPanel.add(configButton(player));
+                    gridPanel.add(restoreButton(player, savedSettingsExist));
                 } else if (bot == null) {
                     gridPanel.add(new JLabel(LOCAL + " Null Bot"));
                     gridPanel.add(new JLabel());
                     gridPanel.add(new JLabel());
                     gridPanel.add(new JLabel());
                 } else {
-                    // Not a Ghost or Princess, something else
+                    // Not a Ghost, Princess, or CASPAR - something else
                     gridPanel.add(new JLabel(LOCAL + ' ' + bot.getClass()));
                     gridPanel.add(new JLabel());
                     gridPanel.add(new JLabel());
@@ -302,12 +333,14 @@ public class EditBotsDialog extends AbstractButtonDialog {
     }
 
     /**
-     * Updates the config button enabled states (only enabled when Princess bot is selected).
+     * Updates the config button enabled states (enabled when Princess or CASPAR bot is selected).
      */
     private void updateButtonStates() {
         for (Player ghost : ghostChoosers.keySet()) {
             JButton button = configButtons.get(ghost);
-            button.setEnabled(ghostChoosers.get(ghost).getSelectedIndex() == REPLACE_WITH_PRINCESS_INDEX);
+            int selectedIndex = ghostChoosers.get(ghost).getSelectedIndex();
+            button.setEnabled(selectedIndex == REPLACE_WITH_PRINCESS_INDEX ||
+                  selectedIndex == REPLACE_WITH_CASPAR_INDEX);
         }
 
         for (Player bot : localBotChoosers.keySet()) {
@@ -328,6 +361,23 @@ public class EditBotsDialog extends AbstractButtonDialog {
             JComboBox<String> chooser = ghostChoosers.get(ghost);
             if (chooser.getSelectedIndex() == REPLACE_WITH_PRINCESS_INDEX) {
                 result.put(ghost.getName(), botConfigs.get(ghost));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @return the result of the dialog with respect to ghost players to be replaced by CASPAR bots. The returned map
+     *       links zero, one or more CasparSettings (a CASPAR configuration) to the ghost player name they were
+     *       chosen for. The returned map only includes entries for those ghost players that had a CASPAR Bot
+     *       replacement selected. The result may be empty, but not null.
+     */
+    public Map<String, CasparSettings> getNewCasparBots() {
+        var result = new HashMap<String, CasparSettings>();
+        for (Player ghost : ghostChoosers.keySet()) {
+            JComboBox<String> chooser = ghostChoosers.get(ghost);
+            if (chooser.getSelectedIndex() == REPLACE_WITH_CASPAR_INDEX) {
+                result.put(ghost.getName(), casparConfigs.get(ghost));
             }
         }
         return result;

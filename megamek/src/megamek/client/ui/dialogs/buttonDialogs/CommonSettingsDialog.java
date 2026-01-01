@@ -64,6 +64,7 @@ import javax.swing.event.MouseInputAdapter;
 
 import com.formdev.flatlaf.icons.FlatHelpButtonIcon;
 import megamek.MMConstants;
+import megamek.client.bot.caspar.CasparSettingsFactory;
 import megamek.client.bot.princess.BehaviorSettingsFactory;
 import megamek.client.ui.Messages;
 import megamek.client.ui.buttons.ColourSelectorButton;
@@ -267,6 +268,8 @@ public class CommonSettingsDialog extends AbstractButtonDialog
     private final JCheckBox showAutoResolvePanel = new JCheckBox(Messages.getString(
           "CommonSettingsDialog.showAutoResolvePanel"));
     private JComboBox<String> favoritePrincessBehaviorSetting;
+    private JComboBox<String> favoriteCasparBehaviorSetting;
+    private JComboBox<String> defaultBotType;
     private JComboBox<String> displayLocale;
     private final JCheckBox showIPAddressesInChat = new JCheckBox(Messages.getString(
           "CommonSettingsDialog.showIPAddressesInChat"));
@@ -2805,6 +2808,10 @@ public class CommonSettingsDialog extends AbstractButtonDialog
         CLIENT_PREFERENCES.setShowAutoResolvePanel(showAutoResolvePanel.isSelected());
         CLIENT_PREFERENCES.setFavoritePrincessBehaviorSetting(
               (String) favoritePrincessBehaviorSetting.getSelectedItem());
+        CLIENT_PREFERENCES.setFavoriteCasparBehaviorSetting(
+              (String) favoriteCasparBehaviorSetting.getSelectedItem());
+        CLIENT_PREFERENCES.setDefaultBotType(
+              (String) defaultBotType.getSelectedItem());
         if ((clientgui != null) && (clientgui.getBoardView() != null)) {
             clientgui.getBoardView().updateEntityLabels();
         }
@@ -3460,6 +3467,32 @@ public class CommonSettingsDialog extends AbstractButtonDialog
         row = new ArrayList<>();
         row.add(new JLabel(Messages.getString("CommonSettingsDialog.favoritePrincessBehaviorSetting")));
         row.add(favoritePrincessBehaviorSetting);
+        comps.add(row);
+
+        // CASPAR Behavior Setting
+        favoriteCasparBehaviorSetting = new MMComboBox<>("favoriteCasparBehaviorSetting",
+              CasparSettingsFactory.getInstance().getBehaviorNameList());
+        favoriteCasparBehaviorSetting.setMaximumSize(new Dimension(200, 25));
+        favoriteCasparBehaviorSetting.setToolTipText(Messages.getString(
+              "CommonSettingsDialog.favoriteCasparBehaviorSettingTooltip"));
+        favoriteCasparBehaviorSetting.setSelectedItem(CLIENT_PREFERENCES.getFavoriteCasparBehaviorSetting());
+
+        row = new ArrayList<>();
+        row.add(new JLabel(Messages.getString("CommonSettingsDialog.favoriteCasparBehaviorSetting")));
+        row.add(favoriteCasparBehaviorSetting);
+        comps.add(row);
+
+        // Default Bot Type
+        defaultBotType = new MMComboBox<>("defaultBotType",
+              java.util.List.of("Princess", "CASPAR"));
+        defaultBotType.setMaximumSize(new Dimension(200, 25));
+        defaultBotType.setToolTipText(Messages.getString(
+              "CommonSettingsDialog.defaultBotTypeTooltip"));
+        defaultBotType.setSelectedItem(CLIENT_PREFERENCES.getDefaultBotType());
+
+        row = new ArrayList<>();
+        row.add(new JLabel(Messages.getString("CommonSettingsDialog.defaultBotType")));
+        row.add(defaultBotType);
         comps.add(row);
 
         comps.add(checkboxEntry(enableExperimentalBotFeatures,
