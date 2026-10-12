@@ -375,6 +375,14 @@ final class UnitAttack {
         return shot() && event.result().hit() && firesTag(event.entityId(), event.result().equipmentIndex());
     }
 
+    /**
+     * How long after contact the terrain this attack changes shows its change: a fuel-air round's at its ignition, a
+     * moment after landing, when the fire that clears and burns it lights; any other attack's at contact.
+     */
+    float terrainDelaySeconds() {
+        return GpuArtilleryBlast.isFuelAir(event.result().shot()) ? GpuArtilleryBlast.FUEL_AIR_IGNITION_SECONDS : 0;
+    }
+
     float firingEndSeconds() { return firingEndSeconds; }
 
     /** Preserve the server's total. Division across logical group members is cosmetic, never another cluster roll. */
