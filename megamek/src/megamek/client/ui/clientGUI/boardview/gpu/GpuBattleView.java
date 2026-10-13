@@ -591,7 +591,7 @@ class GpuBattleView extends ApplicationAdapter {
         }
         boardGeneration = frame.boardGeneration();
         var atmosphereSettings = tuning.atmosphere();
-        // The Tactical View has clear air and its one fixed light: no clouds, fog, haze or weather (b11-design 4.3).
+        // The Tactical View has clear air and its one fixed light: no clouds, fog, haze or weather.
         atmosphere.configure(boardCamera.tactical() ? BoardAtmosphere.DEFAULTS : atmosphereSettings);
         atmosphere.setOptions(tuning.atmosphereOptions());
         // Material readiness includes live lighting/cloud flags, before any visible terrain is submitted.
@@ -599,6 +599,9 @@ class GpuBattleView extends ApplicationAdapter {
         terrain.setAtmosphere(atmosphere.lighting());
         atmosphere.configureClouds(terrain, scene);
         terrain.setGravity(atmosphereSettings.gravity());
+        // The 3D Graphics choose what the terrain builds; the first frame already has the saved choice, and a switch
+        // rebuilds behind the loading stage below. The Tactical View is the camera and the presentation.
+        terrain.setColumns(source.uiPreferences().graphics() == BoardGraphics.CLASSIC);
         terrain.update(scene, boardCamera.camera);
         boolean detailChanged = terrain.refine(boardCamera.camera, source.isEditor());
         settings.set(terrain.settings());
@@ -655,11 +658,10 @@ class GpuBattleView extends ApplicationAdapter {
         attackEffects.setFuelAirStrength(AreaEffectHelper.fuelAirStrength(atmosphereSettings.pressure(), false));
         terrain.setNormalMaps(tuning.normalMaps());
         terrain.setTerrainWear(tuning.terrainWear());
-        // The Tactical View hides what has no gameplay value. Grass and water effects are the terrain's live switches.
-        // TODO(b11 step 7): terrain.setFluffHidden(boardCamera.tactical()) hides trees, scatter, decorative props,
-        // building models, decals, paint, scars and water pages by the keep rule (b11-design 4.3), without a rebuild.
-        terrain.setGrass(tuning.grass() && !boardCamera.tactical());
-        terrain.setWaterEffects(tuning.waterEffects() && !boardCamera.tactical());
+        // The Tactical View hides what has no gameplay value, by one draw rule and without a rebuild.
+        terrain.setFluffHidden(boardCamera.tactical());
+        terrain.setGrass(tuning.grass());
+        terrain.setWaterEffects(tuning.waterEffects());
         terrain.setSmallObjects(tuning.objectLod());
         if (unitTextures.update(scene.units().stream().filter(unit -> !unit.sensorContact()
               && (unitModels == null || unitModels.get(unit.model(), unit.id()) == null)).map(BoardScene.Unit::image).distinct()
@@ -750,16 +752,12 @@ class GpuBattleView extends ApplicationAdapter {
         }
         updateEquipmentDetail();
         if (boardCamera.tactical()) { anchorOnBases(); }
-        // The graphics setting alone chooses the terrain; the Tactical View is the camera and the presentation.
-        // TODO(b11 step 7): terrain.setColumns(graphics == CLASSIC) before terrain.update builds Classic. Until then
-        // Classic drives today's draw-time flip to the tileset columns.
-        terrain.setTacticalView(source.uiPreferences().graphics() == BoardGraphics.CLASSIC);
         markers.update(unitInstances.values(), boardCamera.camera);
         updateJumpJets();
         attackEffects.update(playback.attacks(), completedAttacks, unitModels, unitInstances);
         attackEffects.advance(Gdx.graphics.getDeltaTime());
-        // No craters in the Tactical View or on the Classic columns. TODO(b11 step 7): columns() for tacticalView().
-        if (!terrain.tacticalView() && !boardCamera.tactical()) {
+        // No craters in the Tactical View or on the Classic columns.
+        if (!terrain.columns() && !boardCamera.tactical()) {
             attackEffects.groundImpacts(completedAttacks, impact -> terrain.impact(scene, impact));
             attackEffects.artilleryGroundMarks(impact -> terrain.impact(scene, impact));
         }
@@ -803,9 +801,9 @@ class GpuBattleView extends ApplicationAdapter {
             terrain.render(boardCamera.camera, false);
         }
         if (boardCamera.tactical()) {
-            // The Tactical View's ground marks, then the bases, which the meeples cover (b11-design 4.4).
+            // The Tactical View's ground marks, then the bases, which the meeples cover.
             renderStage("ground layer");
-            hexGrid.render(boardCamera, scene, terrain.tacticalView(), true, frame.status().arc(),
+            hexGrid.render(boardCamera, scene, terrain.columns(), true, frame.status().arc(),
                   source.uiPreferences().overlays().levelShading());
             unitBases.renderBases(boardCamera.camera);
         }
@@ -821,15 +819,14 @@ class GpuBattleView extends ApplicationAdapter {
         starShells.update(scene, attackEffects.starShellOpenings(), Gdx.graphics.getDeltaTime());
         starShells.renderLight(boardCamera.camera, effectDepth, atmosphere.lighting().daylight());
         // The Classic columns' tileset art already shows fire and smoke, the Tactical View marks them on their hexes.
-        // TODO(b11 step 7): columns() for tacticalView().
-        if (!terrain.tacticalView() && !boardCamera.tactical()) {
+        if (!terrain.columns() && !boardCamera.tactical()) {
             terrainEffects.render(boardCamera.camera, effectDepth, smokeLight, atmosphere.lighting().direction());
         }
         jumpJets.setSmokeLight(smokeLight);
         attackEffects.setSmokeLight(smokeLight);
         attackEffects.setLightDirection(atmosphere.lighting().direction());
         // Mines lie on the terrain, so not in the Tactical View or on the Classic columns, which draw no craters.
-        boolean terrainMarks = !terrain.tacticalView() && !boardCamera.tactical();
+        boolean terrainMarks = !terrain.columns() && !boardCamera.tactical();
         attackEffects.setMinefields(terrainMarks ? GpuArtilleryBlast.minefields(scene.markers()) : Map.of(),
               ray -> terrain.hit(scene, ray));
         jumpJets.render(boardCamera.camera);
@@ -848,11 +845,13 @@ class GpuBattleView extends ApplicationAdapter {
         atmosphere.renderWeather(boardCamera.camera, scene);
         renderStage("unit outlines");
         unitVisibility.render(boardCamera.camera, outlined, atmosphere.depthTexture(), 0, seeThrough, layoutScale,
-              unitBounds, terrain.tacticalView() || boardCamera.tactical() ? null : terrainEffects.opacityTexture(),
+              unitBounds, terrain.columns() || boardCamera.tactical() ? null : terrainEffects.opacityTexture(),
               terrain);
         if (source.isEditor()) { traceOverlay.render(boardCamera, source.trace(), Gdx.graphics.getDeltaTime()); }
         renderStage("tactical overlays");
         terrain.render(boardCamera.camera, true);
+        // Each artillery round in the air marks the hex it is coming down on, until it lands.
+        overlay.setIncomingTargets(playback.attacks(), Gdx.graphics.getDeltaTime());
         // Movement annotations show through scenery; draw the destination ghost after the route and the units.
         overlay.renderMarks(boardCamera.camera, unitFootprints::get);
         overlay.render(boardCamera.camera);
@@ -865,7 +864,7 @@ class GpuBattleView extends ApplicationAdapter {
               source.uiPreferences().overlays());
         // Outside the Tactical View the grid over the finished scene; inside it, the ground layer drew it.
         if (!boardCamera.tactical()) {
-            hexGrid.render(boardCamera, scene, terrain.tacticalView(), false, GpuBattleStatus.Arc.NONE);
+            hexGrid.render(boardCamera, scene, terrain.columns(), false, GpuBattleStatus.Arc.NONE);
         }
         renderHexText();
         overlay.renderGhost(boardCamera.camera, shownUnit);

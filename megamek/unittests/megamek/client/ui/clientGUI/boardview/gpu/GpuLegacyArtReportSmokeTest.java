@@ -388,7 +388,7 @@ class GpuLegacyArtReportSmokeTest {
                     Hex hex = board.getHex(x, y);
                     var taken = BoardSceneryLayouts.takenTokens(hex);
                     if (!taken.containsValue(BoardSceneryLayouts.Taken.DESIGN)) { continue; }
-                    // The designs the conversion gives the tokens (withoutTakenTokens adds none since b10-f3).
+                    // The designs the conversion gives the tokens (withoutTakenTokens adds none).
                     Hex designed = hex.duplicate();
                     BoardSceneryLayouts.designTypedTokens(hex, designed);
                     Map<String, HexAppearance> added = new TreeMap<>(designed.getAppearance());
@@ -632,7 +632,6 @@ class GpuLegacyArtReportSmokeTest {
                 try {
                     var camera = new BoardCamera();
                     camera.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-                    terrain.setTacticalView(false);
                     frame.prepare(terrain, camera, scene);
                     terrain.update(scene);
                     for (var shot : shots.entrySet()) {

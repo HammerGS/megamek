@@ -262,10 +262,9 @@ the held nameplate key, the log's open state and the playback history. It is pre
    (board labels, target cards, popovers, the Tuning panel) take presses on their widgets only. While a dialog is
    pending, the scrim takes every press.
 2. A press on the board calls `GpuHud.boardPress()`, which ends a keyboard focus and closes the context menu. Right
-   drags pan and middle drags orbit; Shift held at the press swaps the two. In the Tactical View, which holds its
-   angle, both pan. A drag starts past 6 pixels times the layout scale. A left drag moves nothing and cancels its
+   drags pan and middle drags orbit; Shift held at the press swaps the two. A drag starts past 6 pixels times the layout scale. A left drag moves nothing and cancels its
    click. A middle drag on the minimap's map orbits the camera as well, by the same `GpuBattleView.ORBIT_DEGREES` per
-   unit (in the Tactical View it centres the camera as a left one does). An orbit (in free flight a look) hides the
+   unit. An orbit (in free flight a look) hides the
    cursor and holds it in place (`UiCursorCapture`), so the screen's edge
    never stops it: the board's from the drag's start, so a click keeps the cursor, the minimap's from the press. The
    cursor reappears where it was held on release, focus loss, a modal dialog or a new board. A pan keeps the visible
@@ -408,7 +407,7 @@ view changes (open panels, the camera) stay on the GL thread. Names in quotes ar
 | `GpuConditionsCard` | beside the left column | the planetary conditions overlay's lines while its View preference is on | its close button runs that View item |
 | `GpuUtilityBar` | top right | "Tactical view", "Wireframe" (an open grid icon: three lines each way, no border), "Map", "Log" (amber count of the round's reviewable events the board has presented), "Help", "Menu"; the Tactical View chip and north mark | the camera's Tactical View, the tuning model's wireframe view (without the cosmetic scatter), View > minimap, the HUD's toggles |
 | `GpuInitiativeCard` | centre, initiative phase | each side's reported roll, "Wins", "Moves first", the turn order in pages of eight (double blind hides the order and "Moves first") | none |
-| `GpuMinimap` | under the utilities | the board in its tileset colours, units at their animated positions, the planned route, the camera's ground area; its close button straight on the panel's corner | a left press or drag centres the camera, a middle drag orbits it (in the Tactical View it centres too) and the wheel zooms it as on the board, about the view's centre; no order changes |
+| `GpuMinimap` | under the utilities | the board in its tileset colours, units at their animated positions, the planned route, the camera's ground area; its close button straight on the panel's corner | a left press or drag centres the camera, a middle drag orbits it and the wheel zooms it as on the board, about the view's centre; no order changes |
 | `GpuTacticalOverlays` | Tactical View only: top right, left of the right column's top panel (the minimap, else the contacts, weapons or log panel that moves up in its place), level with its top; at the right edge when the right column is empty | "OVERLAYS" and a chevron; one column of twelve checkboxes in four groups, each with a tooltip: Units (Status badges, Links), Combat (Envelope, Rear arcs, LOS shading, Sensor ranges), ECM (Fields, Jamming), Map (Coordinates, Type, Level shading, Distance rings). Collapsed: the header only, same place and width. The layout shows it collapsed for the frame while the window is too short for its rows or the solution or initiative card beside the right column needs the room | a row runs its View-menu item (Unit Links, Movement Envelope, FOV darken, Sensor Range, Hex Coordinates, Hex Types, FOV highlight) or toggles its client setting on Swing (`TacticalStatusBadges`, `TacticalRearArcs`, `BoardEcmTacticalFields`, `BoardEcmTacticalHatch`, `TacticalLevelShading`); the header and H toggle `TacticalOverlaysOpen` |
 | `GpuContactsPanel` | right column | enemy units; with the movement fire preview, where the unit fires from, each enemy's best salvo both ways and the guide toggles | selection rule, unit menu |
 | `GpuWeaponsPanel` | right column, local weapon declaration | target pills with wrapping names, one row per weapon with its roll and slots (an assigned slot in its target's colour); a fixed footer holds HEAT IF FIRED and ALPHA STRIKE, which assigns or retargets all available weapons to the focused target; only the weapon list scrolls, and the minimap shrinks in short windows to leave a complete weapon row visible; no assign line while a weapon is armed, which its row shows selected; on another player's turn the focus unit's draft, read-only. Declaring never ends the turn by default: MegaMek's auto-end firing (`GUIPreferences.AUTO_END_FIRING`, now stored as `AutoEndFiringAfterLastWeapon` so that the old `AutoEndFiring` value is ignored) defaults to off, so FIRE WEAPONS sends the attacks | fire orders |
@@ -449,7 +448,7 @@ Two board-space components are world meshes that `GpuBattleView` draws:
   faint ring at the ground and faint corner posts between them. The movement envelope is MegaMek's own (below).
   Movement paths follow the snapshot's actual floor heights, including vertical steps within one hex. The path,
   destination ring, facing arrow, waypoint markers and hologram use `GL_ALWAYS` without writing scene depth, so
-  opaque walls, floors and terrain cannot hide them. The hologram draws after the route and unit icons. The
+  opaque walls, floors and terrain cannot hide them. The hologram draws after the route and the units. The
   Tactical View keeps its flat route projection; both 3D camera projections share the same route geometry.
 - `GpuFireControl`: range walls of the displayed weapon, the firing lines and the flat range labels
   ([attack controls](gpu-attack-controls.md)). During the local weapon declaration the actor's lines are the HUD's
@@ -560,9 +559,9 @@ handler runs.
 
 ## 5. The Tactical View
 
-The Tactical View is the board seen straight down, north up, with a locked camera. The scene, picking and animation
-timeline stay the 3D view's own; unit models become icons. The terrain is the 3D Graphics setting's: Classic draws the
-tileset columns, Enhanced the shaded 3D terrain.
+The Tactical View is the board seen straight down. The scene, picking and animation
+timeline stay the 3D view's own; every unit is its meeple on a base. The terrain is the 3D Graphics setting's (Classic
+the tileset columns, Enhanced the shaded 3D terrain), without the fluff that has no gameplay value.
 
 - **Switch it** with `TOGGLE_ISO` (T), the "Tactical view" utility, the Menu's "Tactical view" item, or the chip's
   "Back to 3D". Entering it ends Free Flight; switching Free Flight on leaves it. The chip ("Tactical view" with "Back to 3D") shows centred at the top when the top row has room, and
@@ -593,41 +592,39 @@ tileset columns, Enhanced the shaded 3D terrain.
     overlay on the mock-up battle with the game's View menu; `tactical-overlays-*.png`); `GpuElectronicWarfareSmokeTest`
     (Fields and Jamming).
 - **Camera.** `BoardCamera.setTactical(enabled, scene)` saves the full 3D pose (focus, zoom, azimuth, tilt, whether
-  the view fits the window) and turns the same orthographic camera straight down, north up. Pan, zoom, reset, fit
-  and automatic framing work as usual; framing keeps the top view. Orbit, tilt and the turn keys are ignored: one
-  lock, `BoardCamera.rotationLocked()`, stops `orbit`, `tilt`, `rotateStep` and `setIsometric(true)`, so the held
-  keys, the mouse and minimap orbits and the Isometric preset turn nothing. A middle drag pans the board there and
-  centres the camera on the minimap; the Isometric button is disabled and the hint line names no orbit. Zoom has the
+  the view fits the window) and turns the same orthographic camera straight down. Pan, zoom, reset, fit
+  and automatic framing work as usual; framing keeps the top view. Zoom has the
   3D view's limits.
   Leaving restores the saved pose exactly; after a board change it fits the new board from the saved angle. The flag
   is render-thread state and is never saved.
-- **Unit icons** (`GpuUnitIcons`):
-  - the unit's 2D sprite with its camouflage, preserving its aspect ratio and filling 90 % of the hex's tile
-    rectangle in its limiting direction; it keeps this board-space size at every zoom, without a screen-size clamp;
-  - the sprite and facing tick turn together with the unit's animated facing. The tick is mint for own and allied
-    units and coral for enemies. Sensor contacts, wrecks and units without a facing have no tick;
-  - sprite colours stay unchanged by selection, hover or having moved; there are no icon frames, fills or veils;
-  - a destroyed or doomed unit fades to 45 % with a red cross. The shown pose decides, so the cross comes with the
-    shot's impact on the animation timeline;
-  - labels hang 0.62 of the nominal sprite size (0.9 hex heights) above its centre. A click on an icon picks its unit
-    ahead of scenery.
-- **Terrain.** `GpuTerrain.setTacticalView` follows the 3D Graphics setting every frame, not the camera's mode; with
-  Classic, `GpuTilesetTerrain` draws each hex as a column at its level topped by its Saxarba tileset art, with the 3D
-  view's structures, animated liquids, the hex grid, picking and overlay draping on the columns ([GPU board](gpu-board.md#tactical-view)). Trees
-  and other feature meshes leave the board and picking, so a click returns the hex under the pointer, also where a 3D
-  canopy would overhang the next hex. The wireframe view and the Tactical View exclude each other: turning one on
-  turns the other off. The minimap shows the same tileset art.
-- **Board overlay.** It uses the `flat.js` colours and draws the route's ghost as the unit's icon at half strength.
-  Cliff strokes belong to the terrain's top artwork. The route's pulse is a flat glow on the dashed line, a ripple of the destination ring and
-  a brighter ghost icon (section 3).
-- **Tests.** `BoardCameraTacticalTest` covers the camera. `GpuUnitIconsTest` checks square, tall and wide sprites'
-  aspect ratio and 90 % fit at every facing in 15-degree steps. `GpuTacticalViewSmokeTest`
-  renders a 12 x 10 board with woods, jungle, buildings, a fuel tank, an industrial hex and a bridged river at
-  1920 x 1080 and enters and leaves through the real T bind. It checks the restored pose, the icons' rotation and
-  states, facing-tick pixels, label anchors, and sprite aspect and fit on hexes 20, 60, 300 and 800 pixels wide. It
-  checks picking at icons, on the columns' art and where a 3D canopy would overhang the next hex, and field-of-view
-  dimming of unseen tileset art. `GpuUnitScreenScaleSmokeTest` shares the rendered sprite-size check.
-- **Limits.** The whole sprite turns with the unit. At small zooms the sprite and facing tick shrink with the board.
+- **Units: meeples on bases** (`GpuUnitBases`). T forces the All Meeples display (`GpuBattleView.displayMode`), and
+  the units are recreated live; leaving brings the chosen display back. Each listed unit gets a base model drawn
+  before the units (a ring in its side colour, mint own and allied, coral enemy; an acting or focus glow; a pulsing
+  outer ring while it can act now; a facing notch and a thin twist notch that turn with the animated pose) and a badge
+  model after them (heat pip, elevation or altitude pill, damage tile and armour/structure bars, TMM chevrons in the
+  movement colour, the two most severe condition icons, the E(C)CM source badge, a destroyed unit's cross). Sizes are
+  in apothems of the hex; badges fade between 40 and 20 px per hex. A unit's models are rebuilt only when its
+  `BaseSpec` changes; each frame moves them with the pose. Labels hang from the ring's north point, the nameplates
+  show tags only, and picking is the meeple's.
+- **Ground layer** (`GpuHexGrid`, `hex-grid.vert/.frag`), drawn right after the opaque terrain: cliff strokes with
+  hachures (`BoardRim.high`, Cliff Top exits included), 1- and 2-level step lines, woods and jungle tints, roofs with
+  their outline and the "CF n" chip, water shaded by depth with its depth number, smoke and fire, and the hovered or
+  focused enemy's rear arcs. Liquids lie a hair under their surface and the rest on a plane above the board, so a
+  bridge deck covers the water fill.
+- **Terrain.** The 3D Graphics setting chooses the terrain, not the view ([GPU board](gpu-board.md#graphics-classic-and-enhanced)),
+  and `GpuTerrain.setFluffHidden` hides what has no gameplay value at draw time: trees, scatter, grass, building and
+  placed object models, decals and paint, scars, water, spores and geysers ([GPU board](gpu-board.md#tactical-view)).
+  Picking is unchanged by that rule. The wireframe view and the Tactical View exclude each other: turning one on turns
+  the other off. The minimap shows the tileset art.
+- **Board overlay.** One palette serves both views; the route's ghost is the translucent meeple, and the front arc and
+  the selected weapon's wedge show as in 3D. Cliff strokes belong to the ground layer.
+- **Tests.** `BoardCameraTacticalTest` covers the camera, `GpuUnitBasesTest` the bases' spec and fade rules,
+  `GpuHexGridTest` the ground layer's codes. `GpuTacticalViewSmokeTest` renders a 12 x 10 board with woods, jungle,
+  buildings, a fuel tank, an industrial hex and a bridged river at 1920 x 1080 and enters and leaves through the real T
+  bind. It checks the restored pose, the meeples and their bases, the fixed light, that one frame submits no tree, placed
+  object, building module, scatter, grass or water draw while a click on every hex picks the same hex and floor as with
+  the fluff shown, in Enhanced and Classic, picking on the columns' art and the meeples, and field-of-view dimming;
+  it captures the mock-up battle in both graphics. `GpuGraphicsModeSmokeTest` checks that T starts no rebuild.
 
 ## 6. Zoom-out unit scaling
 
@@ -932,7 +929,7 @@ checkout. `test` excludes `@Tag("on-demand")`, runs `checkstyleMain` first and s
 | Modal bridge and Swing cut | `GpuModalBridgeTest`, `GpuDialogRoutingTest`, `GpuListPromptBridgeTest`, `GpuChatToastModalSmokeTest`, `GpuSwingCutTest`, `GpuSwingCutSmokeTest` (a scripted round with real Swing windows under the native window), `GpuVictoryHexFormTest`, `GpuStoryDialogTest`, `GpuHexPickTest` (the bot orders' hex pick), `GpuTurretFacingRoutingTest`, `GpuSwingDialogGateTest` (every prompt opener with the window presented and on the Legacy 2D client; the allowlist) |
 | Live view | `GpuLiveBoardSpaceSmokeTest` (board labels, overlay, traces, minimap, 100 v 100), `GpuLivePlaybackSmokeTest` (presented units, review, speeds, stride), `GpuHudParitySmokeTest` (the live view of a real battle beside each of the 16 hud-v3 shots: every anchored panel within 2 units of the mock's frame; `parity-NN-sbs.png`) |
 | Layout and coverage | `GpuHudLayoutSmokeTest` (900 x 600, 1280 x 720, 1920 x 1080), `GpuMenuCoverageSmokeTest` (every menu item and every phase command of real phase displays reachable) |
-| Board overlay | `GpuBoardOverlaySmokeTest` (beside the mock's shots; envelopes, route, hover preview, ghost, rebuilds), `GpuTacticalCliffSmokeTest` (cliff strokes on the terrain through a camera orbit), `GpuRoutePulseSmokeTest` (the route's pulse frame by frame: the head from the unit to the destination, the surge, the rhythm across rebuilds, a jump's arc, a turn in place, none without a plotted route or switched off, the Tactical View, and the real view's own frames moving it on without a rebuild; `pulse-*.png` and its measured cost in `pulse-cost.txt`) |
+| Board overlay | `GpuBoardOverlaySmokeTest` (beside the mock's shots; envelopes, route, hover preview, ghost, rebuilds), `GpuRoutePulseSmokeTest` (the route's pulse frame by frame: the head from the unit to the destination, the surge, the rhythm across rebuilds, a jump's arc, a turn in place, none without a plotted route or switched off, the Tactical View, and the real view's own frames moving it on without a rebuild; `pulse-*.png` and its measured cost in `pulse-cost.txt`) |
 | Services | `GpuHudServicesTest`, `GpuMovePlanTest`, `GpuFireOrdersTest`, `GpuFireDraftsTest`, `GpuOffBoardTargetsTest` (the Legacy 2D off-board arrows pinned; the dock's command sends the same attack; the native choice and its Esc), `GpuPhysicalOptionsTest`, `GpuUnitRecordTest`, `GpuFirePreviewTest`, `GpuLosResultTest`, `GpuHudMessagesTest`, `GpuChatRoundLinesTest`, `GpuBattleStatusTest`, `GpuReportLogTest`, `GpuPlaybackHistoryTest`, `GpuBotCommandsTest` |
 | Components | one smoke test per component, e.g. `GpuPhaseHeaderSmokeTest`, `GpuForcesPanelSmokeTest`, `GpuCommandDockSmokeTest`, `GpuWeaponsPanelSmokeTest`, `GpuTargetCardsSmokeTest`, `GpuLogPanelSmokeTest`, `GpuUnitCardSmokeTest`, `GpuTuningPanelSmokeTest`; `GpuCardPlacementTest`, `GpuContextMenuTest` |
 | Toolkit and skin | `UiGallerySmokeTest`, `UiListSmokeTest`, `UiTreeSmokeTest`, `DisplayScaleTest`, `GpuHudKitSmokeTest`, `GpuHudSkinSmokeTest`, `GpuPaperdollTest`, `GpuPaperdollsTest`, `GpuPaperdollSmokeTest` |
