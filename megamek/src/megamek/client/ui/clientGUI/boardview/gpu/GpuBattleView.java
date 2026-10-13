@@ -112,6 +112,7 @@ class GpuBattleView extends ApplicationAdapter {
     private static final long SLOW_FRAME_MILLIS = 40;
     private List<BoardScene.Tile> lastFrameTiles;
     private boolean tilesChangedThisFrame;
+    private final GpuStarShells starShells = new GpuStarShells();
     private final GpuTerrainEffects terrainEffects = new GpuTerrainEffects();
     private final GpuEffectDepth effectDepth = new GpuEffectDepth();
     private final GpuWaterImpacts waterImpacts = new GpuWaterImpacts();
@@ -390,6 +391,7 @@ class GpuBattleView extends ApplicationAdapter {
         if (lines != null) { lines.dispose(); lines = null; }
         attackEffects.dispose();
         designators.dispose();
+        starShells.dispose();
         terrainEffects.dispose();
         jumpJets.dispose();
         waterImpacts.dispose();
@@ -815,6 +817,9 @@ class GpuBattleView extends ApplicationAdapter {
         Color smokeLight = atmosphere.particleLight();
         terrainEffects.update(scene, groundSurfaces, atmosphereSettings.effects(), animationSeconds());
         effectDepth.begin();
+        // Illumination rounds light the opaque scene before smoke and fire are drawn over it.
+        starShells.update(scene, attackEffects.starShellOpenings(), Gdx.graphics.getDeltaTime());
+        starShells.renderLight(boardCamera.camera, effectDepth, atmosphere.lighting().daylight());
         // The Classic columns' tileset art already shows fire and smoke, the Tactical View marks them on their hexes.
         // TODO(b11 step 7): columns() for tacticalView().
         if (!terrain.tacticalView() && !boardCamera.tactical()) {
@@ -830,6 +835,7 @@ class GpuBattleView extends ApplicationAdapter {
         jumpJets.render(boardCamera.camera);
         attackEffects.render(boardCamera.camera, effectDepth);
         designators.render(boardCamera.camera, scene.designations(), Gdx.graphics.getDeltaTime());
+        starShells.renderFlares(boardCamera.camera);
         if (!terrain.waterVisible()) { waterImpacts.clear(); }
         else if (!boardCamera.tactical()) {
             waterImpacts.render(boardCamera.camera, scene, motions, unitInstances, smokeLight, playback.attachment());
