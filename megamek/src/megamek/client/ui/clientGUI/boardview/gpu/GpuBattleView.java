@@ -835,7 +835,7 @@ class GpuBattleView extends ApplicationAdapter {
         jumpJets.render(boardCamera.camera);
         attackEffects.render(boardCamera.camera, effectDepth);
         designators.render(boardCamera.camera, scene.designations(), Gdx.graphics.getDeltaTime());
-        starShells.renderFlares(boardCamera.camera);
+        starShells.renderFlares(boardCamera.camera, atmosphere.lighting().daylight());
         if (!terrain.waterVisible()) { waterImpacts.clear(); }
         else if (!boardCamera.tactical()) {
             waterImpacts.render(boardCamera.camera, scene, motions, unitInstances, smokeLight, playback.attachment());
