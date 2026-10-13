@@ -3,6 +3,7 @@ package megamek.client.ui.clientGUI.boardview.gpu;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -320,6 +321,40 @@ class GroundDamagePlaybackTest {
         assertEquals(hexCentre.x, point.x, .01f, "Over the hex it drifted to");
         assertEquals(hexCentre.y, point.y, .01f);
         assertEquals(groundHeight, point.z, .01f, "On the terrain, not the flat level");
+    }
+
+    /**
+     * A round landing in woods is placed on the canopy, where its point matches no ground face. Its crater goes on the
+     * ground directly beneath: the face under the point, at that face's own height, and none for a point beside them.
+     */
+    @Test
+    void aCraterInWoodsGoesOnTheGroundBeneathTheCanopy() {
+        var low = new BoardSurface.Face(new Vector3(0, 0, 2), new Vector3(10, 0, 2), new Vector3(0, 10, 2),
+              BoardSurface.Finish.TOP);
+        var high = new BoardSurface.Face(new Vector3(10, 0, 4), new Vector3(10, 10, 4), new Vector3(0, 10, 4),
+              BoardSurface.Finish.TOP);
+        List<BoardSurface.Face> ground = List.of(low, high);
+
+        assertSame(low, GpuGroundDamage.groundBeneath(ground, 2, 2), "The face under the point, not its neighbour");
+        assertEquals(2, GpuGroundDamage.groundBeneath(ground, 2, 2).height(2, 2), .001f);
+        assertSame(high, GpuGroundDamage.groundBeneath(ground, 8, 8));
+        assertNull(GpuGroundDamage.groundBeneath(ground, 20, 20), "No ground beneath a point beside every face");
+    }
+
+    /** An Arrow IV round flies in slower than a shell from the same range, so its missile is seen coming. */
+    @Test
+    void anArrowIVRoundArrivesSlowerThanAShell() {
+        EquipmentType.initializeTypes();
+        var profile = new ResolvedAttack.Shot("", Set.of(), true, false, 1, 0, true, null, null, null, true, 20,
+              false, false, false, null, 20);
+        UnitAttack arrowIV = shot("ISArrowIV", true, profile);
+        UnitAttack shell = shot("ISLongTom", true, profile);
+
+        assertTrue(UnitAttack.firesArrowIV(arrowIV.event.result()));
+        assertFalse(UnitAttack.firesArrowIV(shell.event.result()));
+        assertTrue(shell.flightSeconds <= .7f, "A shell: " + shell.flightSeconds);
+        assertTrue(arrowIV.flightSeconds >= UnitAttack.ARROW_IV_MIN_FLIGHT_SECONDS, "An Arrow IV: " + arrowIV.flightSeconds);
+        assertTrue(arrowIV.contactSeconds > shell.contactSeconds, "It lands later");
     }
 
     @Test
